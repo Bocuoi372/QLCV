@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công việc của tôi</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Đơn giản cho Staff -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h2>Cổng Thông Tin Nhân Viên</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active"><span class="icon">📋</span> Nhiệm vụ của tôi</a></li>
+                <li style="margin-top: auto;">
+                    <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();"
+                        style="color: #f44336;">
+                        <span class="icon">🚪</span> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Nội dung chính -->
+        <div class="main-wrapper">
+            <header class="page-header"
+                style="justify-content: space-between; display: flex; align-items: center; padding: 1rem 2rem;">
+                <h1 class="main-title" style="font-size: 2rem;">Danh Sách Công Việc Được Giao</h1>
+                <div id="staffWelcome" style="font-weight: 600; color: var(--primary-color);">Xin chào, Nhân Viên</div>
+            </header>
+
+            <div class="container">
+                <main class="content-wrapper">
+                    <section class="card">
+                        <div class="table-container">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th style="background-color: #f1f5f9; padding: 1rem;">Mã CV</th>
+                                        <th style="background-color: #f1f5f9; padding: 1rem;">Tên công việc</th>
+                                        <th style="background-color: #f1f5f9; padding: 1rem;">Mô tả yêu cầu</th>
+                                        <th style="background-color: #f1f5f9; padding: 1rem;">Cấp độ</th>
+                                        <th style="background-color: #f1f5f9; padding: 1rem;">Loại công việc</th>
+                                        <th style="background-color: #f1f5f9; padding: 1rem;">Ngày bắt đầu</th>
+                                        <th style="background-color: #f1f5f9; padding: 1rem;">Ngày hoàn thành</th>
+                                        <th style="background-color: #f1f5f9; padding: 1rem;">Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="myTasksBody">
+                                    <!-- Dữ liệu render từ staff.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script src="staff.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt Công việc</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar (Thanh Menu Bên Trái) -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h2>Hệ Thống Quản lý Công Việc </h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html" class="active"><span class="icon">👥</span> Danh sách nhân viên</a></li>
+                <li><a href="tasks.html"><span class="icon">📅</span> Công việc</a></li>
+                <li><a href="report.html"><span class="icon">📊</span> Báo cáo</a></li>
+                <li><a href="accounts.html"><span class="icon">🔑</span> Tài khoản nhân viên</a></li>
+                <li style="margin-top: auto;">
+                    <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();" style="color: #f44336;">
+                        <span class="icon">🚪</span> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Nội dung chính -->
+        <div class="main-wrapper">
+            <header class="page-header">
+
+            </header>
+
+            <div class="container">
+                <main class="content-wrapper">
+                    <!-- Table 1: Cấp độ và trạng thái -->
+                    <section class="card">
+
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th colspan="3" class="main-th">DANH SÁCH NHÂN VIÊN VÀ VỊ TRÍ</th>
+                                        <th colspan="3" class="main-th">DANH MỤC CẤP ĐỘ VÀ TRẠNG THÁI</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="sub-th">Mã NV</th>
+                                        <th class="sub-th">Tên NV</th>
+                                        <th class="sub-th">Vị trí công việc</th>
+                                        <th class="sub-th">Cấp độ</th>
+                                        <th class="sub-th">Trạng thái</th>
+                                        <th class="sub-th" style="width: 80px;">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer"
+                            style="display: flex; justify-content: center; padding: 1.5rem; border-top: 1px solid var(--border-color);">
+                            <button class="btn-add" style="padding: 0.75rem 2rem; font-size: 1.1rem;">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    style="margin-right: 8px; vertical-align: middle;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Add Staff
+                            </button>
+                        </div>
+                    </section>
+
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal (MessageBox) -->
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Thêm Công Việc Mới</h2>
+                <button class="btn-close" id="btnCloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addForm">
+                    <div class="form-group">
+                        <label>Mã Nhân Viên</label>
+                        <input type="text" id="modal_ma_nv" required placeholder="Nhập mã NV...">
+                    </div>
+                    <div class="form-group">
+                        <label>Tên Nhân Viên</label>
+                        <input type="text" id="modal_ten_nv" required placeholder="Nhập tên NV...">
+                    </div>
+                    <div class="form-group">
+                        <label>Vị trí công việc</label>
+                        <input type="text" id="modal_vi_tri" required placeholder="Nhập vị trí...">
+                    </div>
+                    <div class="form-group">
+                        <label>Cấp độ</label>
+                        <select id="modal_cap_do">
+                            <option value="1">Khẩn cấp</option>
+                            <option value="2">Cao</option>
+                            <option value="3" selected>Bình thường</option>
+                            <option value="4">Thấp</option>
+                            <option value="5">Có thời gian cụ thể</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Trạng thái</label>
+                        <select id="modal_trang_thai">
+                            <option value="1">Đã hoàn thành</option>
+                            <option value="2" selected>Đang thực hiện</option>
+                            <option value="3">Quá hạn</option>
+                            <option value="4">Tạm dừng</option>
+                            <option value="5">Xin chỉ đạo</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="btnCancelModal">Cancel</button>
+                <button class="btn-apply" id="btnApply">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="home.js"></script>
+</body>
+
+</html>

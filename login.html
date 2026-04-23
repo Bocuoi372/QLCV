@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Quản lý công việc</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #7030A0;
+            --primary-light: #8a4bba;
+            --secondary-color: #FFE699;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, #f3e8ff 0%, transparent 40%),
+                radial-gradient(circle at bottom left, #fffbea 0%, transparent 40%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(112, 48, 160, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .logo-circle {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            box-shadow: 0 8px 15px rgba(112, 48, 160, 0.2);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(112, 48, 160, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 1rem;
+            box-shadow: 0 4px 6px rgba(112, 48, 160, 0.2);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(112, 48, 160, 0.3);
+            filter: brightness(1.1);
+        }
+
+        .error-message {
+            color: #e53e3e;
+            background-color: #fed7d7;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+        <div class="logo-circle">
+            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4">
+                </path>
+            </svg>
+        </div>
+        <h1>Đăng nhập</h1>
+        <p>Hệ thống quản lý công việc</p>
+
+        <div id="errorBox" class="error-message"></div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="ma_nv">Mã nhân viên</label>
+                <input type="text" id="ma_nv" name="ma_nv" placeholder="Nhập mã nhân viên (VD: ADMIN)" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Mật khẩu</label>
+                <input type="password" id="password" name="password" placeholder="Mật khẩu mặc định: 123456" required>
+            </div>
+            <button type="submit" class="btn-login" id="submitBtn">Đăng nhập ngay</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const ma_nv = document.getElementById('ma_nv').value;
+            const password = document.getElementById('password').value;
+            const errorBox = document.getElementById('errorBox');
+            const submitBtn = document.getElementById('submitBtn');
+
+            submitBtn.textContent = 'Đang xử lý...';
+            submitBtn.disabled = true;
+
+            try {
+                // Call PHP API
+                const formData = new FormData();
+                formData.append('ma_nv', ma_nv);
+                formData.append('password', password);
+
+                const response = await fetch('api_login.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.role === 'ADMIN') {
+                        window.location.href = 'index.html';
+                    } else {
+                        window.location.href = 'staff.html';
+                    }
+                } else {
+                    errorBox.textContent = data.message;
+                    errorBox.style.display = 'block';
+                    submitBtn.textContent = 'Đăng nhập ngay';
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                errorBox.textContent = 'Lỗi kết nối máy chủ.';
+                errorBox.style.display = 'block';
+                submitBtn.textContent = 'Đăng nhập ngay';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
