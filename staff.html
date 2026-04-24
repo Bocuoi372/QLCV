@@ -4,66 +4,449 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công việc của tôi</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Cổng Nhân Viên - Quản Lý Công Việc Chuyên Nghiệp</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e4b8d;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
+            --accent: #f59e0b;
+            --bg-body: #f1f5f9;
+            --sidebar-bg: #1e293b;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.05) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Premium */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-logo {
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .sidebar-logo h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 12px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 16px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 15px;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu a.active {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: white;
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.5);
+        }
+
+        .logout-link {
+            color: #f87171 !important;
+            margin-top: auto;
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        .logout-link:hover {
+            background: rgba(248, 113, 113, 0.1) !important;
+            border-color: #f87171;
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px 60px;
+            max-width: calc(100vw - 280px);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .main-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--sidebar-bg);
+            letter-spacing: -1.5px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 8px 24px 8px 8px;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card h4 {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .stat-icon {
+            float: right;
+            font-size: 1.8rem;
+            opacity: 0.2;
+        }
+
+        /* Search & Actions */
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .search-container {
+            position: relative;
+            width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: white;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        /* Table Card */
+        .table-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255,255,255,0.8);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .report-table th {
+            padding: 20px 24px;
+            background: rgba(248, 250, 252, 0.8);
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .report-table td {
+            padding: 24px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .report-table tr:last-child td { border-bottom: none; }
+        .report-table tr:hover { background: rgba(59, 130, 246, 0.02); }
+
+        /* Progress Slider Premium */
+        .progress-slider {
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            outline: none;
+        }
+
+        .progress-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid var(--primary-light);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .progress-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        /* Status Badge */
+        .badge {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(59, 130, 246, 0.1);
+            border-left-color: var(--primary-light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 1400px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 90px; padding: 40px 10px; }
+            .sidebar-logo h2, .sidebar-menu span:not(.icon) { display: none; }
+            .main-wrapper { margin-left: 90px; max-width: calc(100vw - 90px); padding: 30px; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="app-layout">
-        <!-- Sidebar Đơn giản cho Staff -->
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                <h2>Cổng Thông Tin Nhân Viên</h2>
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <h2>HỆ THỐNG CV</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" class="active">
+                    <span class="icon">📊</span>
+                    <span>Bảng điều khiển</span>
+                </a>
+            </li>
+            <li class="logout-item">
+                <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();" class="logout-link">
+                    <span class="icon">🚪</span>
+                    <span>Đăng xuất</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="page-header">
+            <div>
+                <p style="color: var(--text-muted); font-weight: 600; margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase; font-size: 0.8rem;">Workspace / My Tasks</p>
+                <h1 class="main-title">Quản Lý Công Việc</h1>
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="#" class="active"><span class="icon">📋</span> Nhiệm vụ của tôi</a></li>
-                <li style="margin-top: auto;">
-                    <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();"
-                        style="color: #f44336;">
-                        <span class="icon">🚪</span> Đăng xuất
-                    </a>
-                </li>
-            </ul>
-        </aside>
+            <div id="staffHeaderProfile" class="user-profile">
+                <div class="avatar" id="userAvatar">?</div>
+                <div>
+                    <div id="userNameDisplay" style="font-weight: 800; color: var(--text-main); font-size: 1rem;">Đang tải...</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">NHÂN VIÊN CHÍNH THỨC</div>
+                </div>
+            </div>
+        </header>
 
-        <!-- Nội dung chính -->
-        <div class="main-wrapper">
-            <header class="page-header"
-                style="justify-content: space-between; display: flex; align-items: center; padding: 1rem 2rem;">
-                <h1 class="main-title" style="font-size: 2rem;">Danh Sách Công Việc Được Giao</h1>
-                <div id="staffWelcome" style="font-weight: 600; color: var(--primary-color);">Xin chào, Nhân Viên</div>
-            </header>
-
-            <div class="container">
-                <main class="content-wrapper">
-                    <section class="card">
-                        <div class="table-container">
-                            <table class="report-table">
-                                <thead>
-                                    <tr>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Mã CV</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Tên công việc</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Mô tả yêu cầu</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Cấp độ</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Loại công việc</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Ngày bắt đầu</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Ngày hoàn thành</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Ghi chú</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="myTasksBody">
-                                    <!-- Dữ liệu render từ staff.js -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                </main>
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-icon">📝</span>
+                <h4>Tổng công việc</h4>
+                <div class="value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card" style="border-bottom: 4px solid #10b981;">
+                <span class="stat-icon">✅</span>
+                <h4>Hoàn thành</h4>
+                <div class="value" id="statDone" style="color: #10b981;">0</div>
+            </div>
+            <div class="stat-card" style="border-bottom: 4px solid #3b82f6;">
+                <span class="stat-icon">⏳</span>
+                <h4>Đang thực hiện</h4>
+                <div class="value" id="statDoing" style="color: #3b82f6;">0</div>
+            </div>
+            <div class="stat-card" style="border-bottom: 4px solid #ef4444;">
+                <span class="stat-icon">🚩</span>
+                <h4>Quan trọng</h4>
+                <div class="value" id="statHigh" style="color: #ef4444;">0</div>
             </div>
         </div>
+
+        <div class="actions-bar">
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="taskSearch" class="search-input" placeholder="Tìm kiếm theo tên hoặc mã công việc...">
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                Cập nhật lần cuối: <span id="lastUpdate">Vừa xong</span>
+            </div>
+        </div>
+
+        <main class="table-card">
+            <div style="overflow-x: auto;">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">STT</th>
+                            <th style="width: 130px;">Mã định danh</th>
+                            <th style="width: 300px;">Chi tiết công việc</th>
+                            <th style="width: 250px;">Danh mục Checklist</th>
+                            <th>Thời hạn</th>
+                            <th>Cấp độ</th>
+                            <th style="width: 220px;">Tiến độ</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myTasksBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 120px;">
+                                <div class="loading-spinner"></div>
+                                <p style="color: var(--text-muted); font-weight: 700; letter-spacing: 2px; font-size: 0.9rem;">HỆ THỐNG ĐANG KHỞI TẠO DỮ LIỆU...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
 
-    <script src="staff.js"></script>
+    <div id="toast-container"></div>
+
+    <script src="utils.js"></script>
+    <script src="staff.js?v=7"></script>
 </body>
 
 </html>

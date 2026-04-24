@@ -14,16 +14,18 @@ try {
         $ma_nv = $_POST['ma_nv'] ?? '';
         $ten_nv = $_POST['ten_nv'] ?? '';
         $mat_khau = $_POST['mat_khau'] ?? '';
+        $quyen_han = $_POST['quyen_han'] ?? 3;
 
         if (empty($ma_nv) || empty($ten_nv) || empty($mat_khau)) {
             echo json_encode(["success" => false, "message" => "Vui lòng nhập đầy đủ thông tin!"]);
             exit;
         }
 
-        $stmt = $conn->prepare("UPDATE nhan_vien SET ten_nv = :ten_nv, mat_khau = :mat_khau WHERE ma_nv = :ma_nv");
+        $stmt = $conn->prepare("UPDATE nhan_vien SET ten_nv = :ten_nv, mat_khau = :mat_khau, quyen_han = :quyen_han WHERE ma_nv = :ma_nv");
         $stmt->execute([
             ':ten_nv' => $ten_nv,
             ':mat_khau' => $mat_khau,
+            ':quyen_han' => $quyen_han,
             ':ma_nv' => $ma_nv
         ]);
 

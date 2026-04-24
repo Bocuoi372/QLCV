@@ -46,12 +46,16 @@ try {
 
         // Kiểm tra mật khẩu từ cơ sở dữ liệu
         if ($user && $pass === $user['mat_khau']) {
-            // Lưu session khi đăng nhập thành công
             $_SESSION['ma_nv'] = $user['ma_nv'];
             $_SESSION['ten_nv'] = $user['ten_nv'];
             $_SESSION['vi_tri'] = $user['vi_tri_cong_viec'];
-            // Phân quyền cơ bản: Nếu mã là ADMIN hoặc vị trí quản lý thì là ADMIN, còn lại là STAFF
-            $role = ($user['ma_nv'] === 'ADMIN' || strpos(strtolower($user['vi_tri_cong_viec']), 'quản lý') !== false) ? 'ADMIN' : 'STAFF';
+            
+            // Phân quyền dựa trên cột quyen_han (1: Admin, 2: Manager, 3: Staff)
+            // Cả Admin (1) và Manager (2) đều có quyền vào trang Quản trị (ADMIN role)
+            $role = 'STAFF';
+            if ($user['quyen_han'] == 1 || $user['quyen_han'] == 2) {
+                $role = 'ADMIN';
+            }
 
             echo json_encode([
                 "success" => true, 

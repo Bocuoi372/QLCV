@@ -21,6 +21,8 @@ try {
         $ngay_bat_dau = !empty($_POST['ngay_bat_dau']) ? $_POST['ngay_bat_dau'] : null;
         $ngay_hoan_thanh = !empty($_POST['ngay_hoan_thanh']) ? $_POST['ngay_hoan_thanh'] : null;
         $ghi_chu = $_POST['ghi_chu'] ?? '';
+        $tien_do = $_POST['tien_do'] ?? 0;
+        $old_ma_cv = $_POST['old_ma_cv'] ?? $ma_cv;
 
         if (empty($ma_cv) || empty($ten_cv)) {
             echo json_encode(["success" => false, "message" => "Thiếu thông tin Mã công việc hoặc Tên công việc!"]);
@@ -29,6 +31,7 @@ try {
 
         $stmt = $conn->prepare("
             UPDATE cong_viec_dinh_ky SET 
+                ma_cv = :ma_cv,
                 ten_cv = :ten_cv, 
                 mo_ta_cv = :mo_ta_cv, 
                 nguoi_phu_trach = :nguoi_phu_trach, 
@@ -37,11 +40,13 @@ try {
                 loai_cv = :loai_cv, 
                 ngay_bat_dau = :ngay_bat_dau, 
                 ngay_hoan_thanh = :ngay_hoan_thanh, 
-                ghi_chu = :ghi_chu
-            WHERE ma_cv = :ma_cv
+                ghi_chu = :ghi_chu,
+                tien_do = :tien_do
+            WHERE ma_cv = :old_ma_cv
         ");
 
         $stmt->execute([
+            ':ma_cv' => $ma_cv,
             ':ten_cv' => $ten_cv,
             ':mo_ta_cv' => $mo_ta_cv,
             ':nguoi_phu_trach' => $ma_nv,
@@ -51,7 +56,8 @@ try {
             ':ngay_bat_dau' => $ngay_bat_dau,
             ':ngay_hoan_thanh' => $ngay_hoan_thanh,
             ':ghi_chu' => $ghi_chu,
-            ':ma_cv' => $ma_cv
+            ':tien_do' => $tien_do,
+            ':old_ma_cv' => $old_ma_cv
         ]);
 
         echo json_encode(["success" => true, "message" => "Cập nhật công việc thành công!"]);

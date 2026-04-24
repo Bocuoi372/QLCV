@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Báo cáo Công việc & Nhân sự</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --card-radius: 24px;
+            --input-radius: 14px;
+            --premium-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --indigo-600: #4f46e5;
+            --indigo-700: #4338ca;
+        }
+
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            padding-bottom: 50px;
+        }
+
+        /* Filter Section */
+        .filter-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--premium-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .multi-select-box {
+            border: 1.5px solid #f1f5f9;
+            border-radius: var(--input-radius);
+            padding: 15px;
+            background: #ffffff;
+            transition: all 0.3s;
+        }
+
+        .multi-select-box:focus-within {
+            border-color: var(--indigo-600);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .select-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .select-item:hover {
+            background: #f8fafc;
+        }
+
+        .select-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--indigo-600);
+            cursor: pointer;
+        }
+
+        /* Stats Grid */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 25px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--premium-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--stat-color, var(--indigo-600));
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--stat-bg, rgba(79, 70, 229, 0.1));
+            color: var(--stat-color, var(--indigo-600));
+        }
+
+        .stat-box h4 {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .stat-box .value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #1e293b;
+            line-height: 1;
+        }
+
+        .stat-footer {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: white;
+            padding: 30px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--premium-shadow);
+            border: 1px solid #f1f5f9;
+        }
+
+        .chart-card h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-card h3::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--indigo-600);
+            border-radius: 4px;
+        }
+
+        /* Buttons */
+        .btn-apply {
+            background: var(--indigo-600);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--input-radius);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-apply:hover {
+            background: var(--indigo-700);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-clear {
+            background: white;
+            color: #64748b;
+            border: 1.5px solid #e2e8f0;
+            padding: 14px 28px;
+            border-radius: var(--input-radius);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-clear:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
+
+        .form-control {
+            padding: 14px;
+            border-radius: var(--input-radius);
+            border: 1.5px solid #f1f5f9;
+            background: white;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            color: #1e293b;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--indigo-600);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="index.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Danh sách nhân viên</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="tasks.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span>Công việc</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="report.html" class="active">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                        <span>Báo cáo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="timeline.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        <span>Tổng hợp lịch trình</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="accounts.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <span>Tài khoản nhân viên</span>
+                    </a>
+                </li>
+                <li style="margin-top: auto;">
+                    <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();"
+                        style="color: var(--danger);">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Đăng xuất</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Nội dung chính -->
+        <div class="main-wrapper">
+            <div class="container">
+                <header class="page-header">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <button id="btnBack"
+                            style="display: none; padding: 10px 20px; background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; font-weight: 700; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"
+                                viewBox="0 0 24 24">
+                                <path d="M19 12H5M12 19l-7-7 7-7" />
+                            </svg>
+                            QUAY LẠI
+                        </button>
+                        <div>
+                            <h1 class="main-title">DASHBOARD BÁO CÁO CÔNG VIỆC & NHÂN SỰ</h1>
+                            <p class="page-subtitle">Phân tích hiệu suất và tiến độ công việc toàn hệ thống</p>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="dashboard-container">
+                    <!-- Filter Panel -->
+                    <div class="filter-panel">
+                        <div class="filter-group" style="flex: 2; min-width: 300px;">
+                            <label style="display: flex; justify-content: space-between;">
+                                👥 TÊN NHÂN VIÊN
+                                <span style="font-weight: 600; color: #6366f1;" id="selectedCount">TẤT CẢ</span>
+                            </label>
+                            <div class="multi-select-box" id="employeeSelect"
+                                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; max-height: 200px; overflow-y: auto;">
+                                <div class="select-item" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                    <input type="checkbox" id="selectAll">
+                                    <label for="selectAll" style="font-weight: 800; color: #6366f1; cursor: pointer;">Chọn tất cả</label>
+                                </div>
+                                <div id="employeeListContainer" style="display: contents;">
+                                    <!-- JS will populate this -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 220px;">
+                            <div class="filter-group">
+                                <label>📅 Từ ngày</label>
+                                <input type="date" id="fromDate" class="form-control">
+                            </div>
+                            <div class="filter-group">
+                                <label>📅 Đến ngày</label>
+                                <input type="date" id="toDate" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Time Presets -->
+                        <div class="filter-group" style="flex: 1; min-width: 200px;">
+                            <label>⚡ LỌC NHANH</label>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <button class="btn-preset" data-range="month" style="padding: 10px 15px; border-radius: 12px; border: 1.5px solid #f1f5f9; background: white; font-weight: 700; color: #475569; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 10px; font-size: 0.85rem;">
+                                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);"></span> THÁNG NÀY
+                                </button>
+                                <button class="btn-preset" data-range="quarter" style="padding: 10px 15px; border-radius: 12px; border: 1.5px solid #f1f5f9; background: white; font-weight: 700; color: #475569; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 10px; font-size: 0.85rem;">
+                                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);"></span> QUÝ NÀY
+                                </button>
+                                <button class="btn-preset" data-range="year" style="padding: 10px 15px; border-radius: 12px; border: 1.5px solid #f1f5f9; background: white; font-weight: 700; color: #475569; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 10px; font-size: 0.85rem;">
+                                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);"></span> NĂM NÀY
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="flex: 0 0 180px; display: flex; flex-direction: column; gap: 12px; justify-content: flex-end;">
+                            <button class="btn-apply" id="btnApplyFilter">🚀 ÁP DỤNG</button>
+                            <button class="btn-clear" id="btnClearFilter">🔄 XÓA LỌC</button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-summary">
+                        <div class="stat-box" style="--stat-color: #6366f1; --stat-bg: rgba(99, 102, 241, 0.1);">
+                            <div class="stat-header">
+                                <h4>TỔNG CÔNG VIỆC</h4>
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                </div>
+                            </div>
+                            <div class="value" id="statTotal">0</div>
+                            <div class="stat-footer">📊 Tổng số nhiệm vụ được giao</div>
+                        </div>
+
+                        <div class="stat-box" style="--stat-color: #10b981; --stat-bg: rgba(16, 185, 129, 0.1);">
+                            <div class="stat-header">
+                                <h4>ĐÚNG HẠN</h4>
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                            </div>
+                            <div class="value" id="statEfficiency">0%</div>
+                            <div class="stat-footer">✅ Tỉ lệ hoàn thành đúng hạn</div>
+                        </div>
+
+                        <div class="stat-box" style="--stat-color: #0ea5e9; --stat-bg: rgba(14, 165, 233, 0.1);">
+                            <div class="stat-header">
+                                <h4>ĐANG THỰC HIỆN</h4>
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                            </div>
+                            <div class="value" id="statDoing">0</div>
+                            <div class="stat-footer">⏳ Công việc đang xử lý</div>
+                        </div>
+
+                        <div class="stat-box" style="--stat-color: #22c55e; --stat-bg: rgba(34, 197, 94, 0.1);">
+                            <div class="stat-header">
+                                <h4>HOÀN THÀNH</h4>
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            </div>
+                            <div class="value" id="statDone">0</div>
+                            <div class="stat-footer">🏆 Nhiệm vụ đã kết thúc</div>
+                        </div>
+
+                        <div class="stat-box" style="--stat-color: #f43f5e; --stat-bg: rgba(244, 63, 94, 0.1);">
+                            <div class="stat-header">
+                                <h4>QUÁ HẠN</h4>
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                            </div>
+                            <div class="value" id="statOverdue">0</div>
+                            <div class="stat-footer">⚠️ Cần ưu tiên xử lý gấp</div>
+                        </div>
+
+                        <div class="stat-box" style="--stat-color: #f59e0b; --stat-bg: rgba(245, 158, 11, 0.1);">
+                            <div class="stat-header">
+                                <h4>SỐ DỰ ÁN</h4>
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                </div>
+                            </div>
+                            <div class="value" id="statProjects">0</div>
+                            <div class="stat-footer">🏢 Tổng số danh mục/dự án</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3>📊 TRẠNG THÁI CÔNG VIỆC</h3>
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>🎯 CẤP ĐỘ ƯU TIÊN</h3>
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="levelChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Đánh giá kỷ luật (KL)</h3>
+                            <canvas id="disciplineChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Phân bổ công việc theo dự án</h3>
+                            <canvas id="projectChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+
+</html>

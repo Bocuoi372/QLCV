@@ -1,0 +1,274 @@
+<style>
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Filter Section */
+    .filter-panel {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr 150px;
+        gap: 20px;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-group label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .multi-select-box {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px;
+        max-height: 120px;
+        overflow-y: auto;
+        background: #f8fafc;
+    }
+
+    .select-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .select-item:last-child {
+        border-bottom: none;
+    }
+
+    .select-item:hover {
+        background: #edf2f7;
+    }
+
+    /* Stats Grid */
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+    }
+
+    .stat-box {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        border-top: 4px solid var(--primary-color);
+        transition: transform 0.3s;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-box h4 {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .stat-box .value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    /* Charts Grid */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .chart-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        min-height: 350px;
+    }
+
+    .chart-card h3 {
+        font-size: 1rem;
+        margin-bottom: 25px;
+        color: var(--text-main);
+        border-left: 4px solid var(--primary-color);
+        padding-left: 12px;
+        font-weight: 800;
+    }
+
+    .btn-apply {
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .btn-apply:hover {
+        background: #7c3aed;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-clear {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        padding: 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        margin-top: 10px;
+        cursor: pointer;
+        width: 100%;
+        font-weight: 600;
+    }
+
+    .btn-clear:hover {
+        background: #f1f5f9;
+    }
+
+    /* Custom Scrollbar */
+    .multi-select-box::-webkit-scrollbar {
+        width: 6px;
+    }
+    .multi-select-box::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+    .multi-select-box::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Filter Panel -->
+    <div class="filter-panel" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+        <div class="filter-group" style="flex: 2; min-width: 300px;">
+            <label style="display: flex; justify-content: space-between;">
+                Tên nhân viên
+                <span style="font-weight: 400; color: var(--text-muted); font-size: 0.75rem;" id="selectedCount">Đã chọn: Tất cả</span>
+            </label>
+            <div class="multi-select-box" id="employeeSelect" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; background: #ffffff;">
+                <div class="select-item" style="border: none; padding: 0; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="selectAll" style="width: 18px; height: 18px; cursor: pointer;"> 
+                    <label for="selectAll" style="font-weight: 800; color: #6366f1; cursor: pointer; font-size: 0.9rem;">Chọn tất cả</label>
+                </div>
+                <div id="employeeListContainer" style="display: contents;">
+                    <!-- JS will populate this -->
+                </div>
+            </div>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 200px;">
+            <div class="filter-group">
+                <label>Từ ngày</label>
+                <input type="date" id="fromDate" class="form-control" style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%;">
+            </div>
+            <div class="filter-group">
+                <label>Đến ngày</label>
+                <input type="date" id="toDate" class="form-control" style="padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%;">
+            </div>
+        </div>
+        <div class="filter-group" style="flex: 0.5; display: flex; flex-direction: column; gap: 10px; justify-content: flex-end; height: 100%; min-width: 120px;">
+            <button class="btn-apply" id="btnApplyFilter" style="margin-bottom: 0;">Áp dụng</button>
+            <button class="btn-clear" id="btnClearFilter" style="margin-top: 0;">Xóa lọc</button>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-summary">
+        <div class="stat-box">
+            <h4>Tổng số công việc</h4>
+            <div class="value" id="statTotalTasks">0</div>
+        </div>
+        <div class="stat-box" style="border-top-color: #10b981;">
+            <h4>Tỉ lệ đúng hạn</h4>
+            <div class="value" id="statOnTimeRate">0%</div>
+        </div>
+        <div class="stat-box" style="border-top-color: #3b82f6;">
+            <h4>Đang thực hiện</h4>
+            <div class="value" id="statInProgress">0</div>
+        </div>
+        <div class="stat-box" style="border-top-color: #10b981;">
+            <h4>Đã hoàn thành</h4>
+            <div class="value" id="statCompleted">0</div>
+        </div>
+        <div class="stat-box" style="border-top-color: #ef4444;">
+            <h4>Quá hạn / Tạm dừng</h4>
+            <div class="value" id="statOverdue">0</div>
+        </div>
+        <div class="stat-box" style="border-top-color: #f59e0b;">
+            <h4>Số lượng dự án</h4>
+            <div class="value" id="statProjects">0</div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Số lượng công việc theo trạng thái</h3>
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Cấp độ công việc</h3>
+            <div style="height: 250px; display: flex; justify-content: center;">
+                <canvas id="levelChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>Đánh giá kỷ luật (KL)</h3>
+            <canvas id="disciplineChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Phân bổ công việc theo dự án</h3>
+            <canvas id="projectChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Detailed Table -->
+    <div class="chart-card" style="margin-top: 20px; min-height: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>Chi tiết danh sách công việc</h3>
+            <div style="font-size: 0.8rem; color: var(--text-muted);" id="tableUpdateNote">Cập nhật: --:--</div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="dashboardTaskTable">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 12px; text-align: center; width: 50px;">STT</th>
+                        <th style="padding: 12px; text-align: left; width: 100px;">Mã CV</th>
+                        <th style="padding: 12px; text-align: left; width: 200px;">Tên công việc</th>
+                        <th style="padding: 12px; text-align: left;">Mô tả yêu cầu</th>
+                        <th style="padding: 12px; text-align: left; width: 120px;">Cấp độ</th>
+                        <th style="padding: 12px; text-align: left; width: 100px;">Loại</th>
+                        <th style="padding: 12px; text-align: left; width: 100px;">Bắt đầu</th>
+                        <th style="padding: 12px; text-align: left; width: 100px;">Kết thúc</th>
+                        <th style="padding: 12px; text-align: left; width: 120px;">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody id="dashboardTaskTableBody">
+                    <!-- JS will populate this -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

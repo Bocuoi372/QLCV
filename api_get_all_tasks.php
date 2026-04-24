@@ -22,6 +22,7 @@ try {
             cv.ghi_chu,
             cv.cap_do_id,
             cv.trang_thai_id,
+            cv.tien_do,
             nv.ten_nv as nguoi_phu_trach,
             nv.ma_nv,
             tt.ten_trang_thai as trang_thai_text

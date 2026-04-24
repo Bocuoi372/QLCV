@@ -30,9 +30,12 @@ try {
             cv.ngay_bat_dau,
             cv.ngay_hoan_thanh,
             cv.ghi_chu,
-            cd.ten_cap_do as cap_do_text
+            cv.tien_do,
+            cd.ten_cap_do as cap_do_text,
+            tt.ten_trang_thai as trang_thai_text
         FROM cong_viec_dinh_ky cv
         LEFT JOIN cap_do cd ON cv.cap_do_id = cd.id
+        LEFT JOIN trang_thai tt ON cv.trang_thai_id = tt.id
         WHERE cv.nguoi_phu_trach = :ma_nv
         ORDER BY cv.ma_cv ASC
     ");

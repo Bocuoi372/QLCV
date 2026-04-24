@@ -14,6 +14,7 @@ try {
         $ma_nv = $_POST['ma_nv'] ?? '';
         $ten_nv = $_POST['ten_nv'] ?? '';
         $mat_khau = $_POST['mat_khau'] ?? '';
+        $quyen_han = $_POST['quyen_han'] ?? 3;
 
         if (empty($ma_nv) || empty($ten_nv) || empty($mat_khau)) {
             echo json_encode(["success" => false, "message" => "Vui lòng nhập đầy đủ thông tin!"]);
@@ -29,11 +30,12 @@ try {
         }
 
         // Thêm nhân viên mới
-        $stmt = $conn->prepare("INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec, mat_khau) VALUES (:ma_nv, :ten_nv, 'Nhân viên', :mat_khau)");
+        $stmt = $conn->prepare("INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec, mat_khau, quyen_han) VALUES (:ma_nv, :ten_nv, 'Nhân viên', :mat_khau, :quyen_han)");
         $stmt->execute([
             ':ma_nv' => $ma_nv,
             ':ten_nv' => $ten_nv,
-            ':mat_khau' => $mat_khau
+            ':mat_khau' => $mat_khau,
+            ':quyen_han' => $quyen_han
         ]);
 
         echo json_encode(["success" => true, "message" => "Thêm tài khoản thành công!"]);

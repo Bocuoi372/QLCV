@@ -31,6 +31,7 @@ CREATE TABLE cong_viec_dinh_ky (
     thoi_gian_ket_thuc TIME,
     cap_do_id INT,
     trang_thai_id INT,
+    tien_do INT DEFAULT 0,
     FOREIGN KEY (nguoi_phu_trach) REFERENCES nhan_vien(ma_nv) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (cap_do_id) REFERENCES cap_do(id) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (trang_thai_id) REFERENCES trang_thai(id) ON DELETE SET NULL ON UPDATE CASCADE

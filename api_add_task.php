@@ -14,8 +14,10 @@ try {
         $ma_nv = $_POST['ma_nv'] ?? '';
         $ten_nv = $_POST['ten_nv'] ?? '';
         $vi_tri = $_POST['vi_tri'] ?? '';
+        $quyen_han = $_POST['quyen_han'] ?? 3; // Mặc định là Staff
         $cap_do_id = $_POST['cap_do_id'] ?? 3;
         $trang_thai_id = $_POST['trang_thai_id'] ?? 2;
+        $ngay_hoan_thanh = !empty($_POST['ngay_hoan_thanh']) ? $_POST['ngay_hoan_thanh'] : null;
 
         if (empty($ma_nv) || empty($ten_nv)) {
             echo json_encode(["success" => false, "message" => "Dữ liệu không hợp lệ!"]);
@@ -26,18 +28,19 @@ try {
         $conn->beginTransaction();
 
         // 1. Lưu hoặc Cập nhật Nhân Viên
-        // Dùng ON DUPLICATE KEY UPDATE để nếu mã NV đã tồn tại thì chỉ cập nhật Tên và Vị trí
         $stmt_nv = $conn->prepare("
-            INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec) 
-            VALUES (:ma_nv, :ten_nv, :vi_tri)
-            ON DUPLICATE KEY UPDATE ten_nv = :ten_nv_update, vi_tri_cong_viec = :vi_tri_update
+            INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec, quyen_han) 
+            VALUES (:ma_nv, :ten_nv, :vi_tri, :quyen_han)
+            ON DUPLICATE KEY UPDATE ten_nv = :ten_nv_update, vi_tri_cong_viec = :vi_tri_update, quyen_han = :quyen_han_update
         ");
         $stmt_nv->execute([
             ':ma_nv' => $ma_nv,
             ':ten_nv' => $ten_nv,
             ':vi_tri' => $vi_tri,
+            ':quyen_han' => $quyen_han,
             ':ten_nv_update' => $ten_nv,
-            ':vi_tri_update' => $vi_tri
+            ':vi_tri_update' => $vi_tri,
+            ':quyen_han_update' => $quyen_han
         ]);
 
         // 2. Thêm Công việc mới cho nhân viên này
@@ -46,15 +49,16 @@ try {
         $ten_cv = "Công việc cho " . $ten_nv;
 
         $stmt_cv = $conn->prepare("
-            INSERT INTO cong_viec_dinh_ky (ma_cv, ten_cv, nguoi_phu_trach, cap_do_id, trang_thai_id) 
-            VALUES (:ma_cv, :ten_cv, :nguoi_phu_trach, :cap_do_id, :trang_thai_id)
+            INSERT INTO cong_viec_dinh_ky (ma_cv, ten_cv, nguoi_phu_trach, cap_do_id, trang_thai_id, ngay_hoan_thanh) 
+            VALUES (:ma_cv, :ten_cv, :nguoi_phu_trach, :cap_do_id, :trang_thai_id, :ngay_hoan_thanh)
         ");
         $stmt_cv->execute([
             ':ma_cv' => $ma_cv,
             ':ten_cv' => $ten_cv,
             ':nguoi_phu_trach' => $ma_nv,
             ':cap_do_id' => $cap_do_id,
-            ':trang_thai_id' => $trang_thai_id
+            ':trang_thai_id' => $trang_thai_id,
+            ':ngay_hoan_thanh' => $ngay_hoan_thanh
         ]);
 
         // Hoàn tất transaction

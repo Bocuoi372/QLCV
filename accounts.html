@@ -5,25 +5,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tài khoản nhân viên</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <div class="app-layout">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-logo">
-                <h2>Hệ Thống Quản lý Công Việc </h2>
-            </div>
             <ul class="sidebar-menu">
-                <li><a href="index.html"><span class="icon">👥</span> Danh sách nhân viên</a></li>
-                <li><a href="tasks.html"><span class="icon">📅</span> Công việc</a></li>
-                <li><a href="report.html"><span class="icon">📊</span> Báo cáo</a></li>
-                <li><a href="accounts.html" class="active"><span class="icon">🔑</span> Tài khoản nhân viên</a></li>
+                <li>
+                    <a href="index.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Danh sách nhân viên</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="tasks.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span>Công việc</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="report.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <span>Báo cáo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="timeline.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        <span>Tổng hợp lịch trình</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="accounts.html" class="active">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <span>Tài khoản nhân viên</span>
+                    </a>
+                </li>
                 <li style="margin-top: auto;">
-                    <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();" style="color: #f44336;">
-                        <span class="icon">🚪</span> Đăng xuất
+                    <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();" style="color: var(--danger);">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span>Đăng xuất</span>
                     </a>
                 </li>
             </ul>
@@ -31,33 +57,33 @@
 
         <!-- Nội dung chính -->
         <div class="main-wrapper">
-            <header class="page-header"
-                style="justify-content: space-between; display: flex; align-items: center; padding: 1rem 2rem;">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <h1 class="main-title" style="font-size: 2rem;">Quản Lý Tài Khoản</h1>
-                    <button id="btnAddAccount"
-                        style="background-color: var(--primary-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 6px;">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="container">
+                <header class="page-header">
+                    <div>
+                        <h1 class="main-title">QUẢN LÝ TÀI KHOẢN</h1>
+                        <p class="page-subtitle">Quản lý thông tin đăng nhập và quyền truy cập của nhân viên</p>
+                    </div>
+                    <button id="btnAddAccount" class="btn-add">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 8px; vertical-align: middle;">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
                         Thêm tài khoản
                     </button>
-                </div>
-            </header>
+                </header>
 
-            <div class="container">
                 <main class="content-wrapper">
                     <section class="card">
                         <div class="table-container">
                             <table class="report-table">
                                 <thead>
                                     <tr>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Mã Nhân Viên</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Tên Nhân Viên</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Mật khẩu hiện tại</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem; width: 120px;">Thao tác
-                                        </th>
+                                        <th style="width: 50px;">STT</th>
+                                        <th>Mã Nhân Viên</th>
+                                        <th>Tên Nhân Viên</th>
+                                        <th>Quyền hạn</th>
+                                        <th>Mật khẩu hiện tại</th>
+                                        <th style="width: 120px;">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody id="accountsBody">
@@ -87,6 +113,14 @@
                     <div class="form-group">
                         <label>Tên Nhân Viên <span style="color: red;">*</span></label>
                         <input type="text" id="modal_ten_nv" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quyền hạn</label>
+                        <select id="modal_quyen_han">
+                            <option value="3">Nhân viên (Staff)</option>
+                            <option value="2">Quản lý (Manager)</option>
+                            <option value="1">Quản trị viên (Admin)</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Mật khẩu <span style="color: red;">*</span></label>
@@ -122,6 +156,14 @@
                         <label>Mật khẩu <span style="color: red;">*</span></label>
                         <input type="text" id="add_mat_khau" required placeholder="Khởi tạo mật khẩu...">
                     </div>
+                    <div class="form-group">
+                        <label>Quyền hạn</label>
+                        <select id="add_quyen_han">
+                            <option value="3" selected>Nhân viên (Staff)</option>
+                            <option value="2">Quản lý (Manager)</option>
+                            <option value="1">Quản trị viên (Admin)</option>
+                        </select>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -131,7 +173,8 @@
         </div>
     </div>
 
-    <script src="accounts.js"></script>
+    <script src="utils.js"></script>
+    <script src="accounts.js?v=3"></script>
 </body>
 
 </html>

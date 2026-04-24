@@ -10,7 +10,8 @@ try {
     $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $ma_nv = $_GET['id'] ?? '';
+    $ma_nv = isset($_GET['id']) ? trim($_GET['id']) : '';
+    if ($ma_nv === 'null' || $ma_nv === 'undefined') $ma_nv = '';
 
     $whereClause = "";
     $params = [];
@@ -27,7 +28,7 @@ try {
             cd.ten_cap_do as cap_do_text,
             tt.ten_trang_thai as trang_thai_text
         FROM cong_viec_dinh_ky cv
-        JOIN nhan_vien nv ON cv.nguoi_phu_trach = nv.ma_nv
+        LEFT JOIN nhan_vien nv ON cv.nguoi_phu_trach = nv.ma_nv
         LEFT JOIN cap_do cd ON cv.cap_do_id = cd.id
         LEFT JOIN trang_thai tt ON cv.trang_thai_id = tt.id
         $whereClause
@@ -54,9 +55,14 @@ try {
     $can_chi_dao = 0;
 
     foreach ($results as $task) {
-        if ($task['trang_thai_id'] == 1) $hoan_thanh++; // Đã hoàn thành
-        if ($task['trang_thai_id'] == 3) $qua_han++;    // Quá hạn
-        if ($task['trang_thai_id'] == 5) $can_chi_dao++; // Xin chỉ đạo
+        $is_done = ($task['trang_thai_id'] == 1 || (isset($task['tien_do']) && $task['tien_do'] >= 100));
+        
+        if ($is_done) {
+            $hoan_thanh++;
+        } else {
+            if ($task['trang_thai_id'] == 3) $qua_han++;    // Quá hạn
+            if ($task['trang_thai_id'] == 5) $can_chi_dao++; // Xin chỉ đạo
+        }
     }
     
     echo json_encode([

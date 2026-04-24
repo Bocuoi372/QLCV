@@ -4,26 +4,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh Sách Công Việc</title>
+    <title>Danh Sách Công Việc - HỆ THỐNG CV</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Specific overrides for Task Page Table */
+        .btn-edit, .btn-delete {
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f1f5f9;
+        }
+        .btn-edit:hover { background: #dcfce7; color: #10b981; }
+        .btn-delete:hover { background: #fee2e2; color: #ef4444; }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        #modal_tien_do {
+            flex: 1;
+            height: 6px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
     <div class="app-layout">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-logo">
-                <h2>Hệ Thống Quản lý Công Việc </h2>
-            </div>
             <ul class="sidebar-menu">
-                <li><a href="index.html"><span class="icon">👥</span> Danh sách nhân viên</a></li>
-                <li><a href="tasks.html" class="active"><span class="icon">📅</span> Công việc</a></li>
-                <li><a href="report.html"><span class="icon">📊</span> Báo cáo</a></li>
-                <li><a href="accounts.html"><span class="icon">🔑</span> Tài khoản nhân viên</a></li>
+                <li>
+                    <a href="index.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Danh sách nhân viên</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="tasks.html" class="active">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span>Công việc</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="report.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <span>Báo cáo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="timeline.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        <span>Tổng hợp lịch trình</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="accounts.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <span>Tài khoản nhân viên</span>
+                    </a>
+                </li>
                 <li style="margin-top: auto;">
-                    <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();" style="color: #f44336;">
-                        <span class="icon">🚪</span> Đăng xuất
+                    <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();" style="color: var(--danger);">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span>Đăng xuất</span>
                     </a>
                 </li>
             </ul>
@@ -31,130 +87,193 @@
 
         <!-- Nội dung chính -->
         <div class="main-wrapper">
-            <header class="page-header">
-                <h1 class="main-title" style="font-size: 2rem;">Tổng Hợp Công Việc</h1>
-            </header>
-
             <div class="container">
-                <main class="content-wrapper">
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
-                        <button id="btnAddTaskGlobal" class="btn-add" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; vertical-align: middle;">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Thêm Công Việc
-                        </button>
+                <header class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h1 class="main-title">HỆ THỐNG QUẢN LÝ CÔNG VIỆC</h1>
+                        <p class="page-subtitle">Theo dõi và cập nhật tiến độ công việc định kỳ của nhân viên</p>
                     </div>
+                    <button class="btn-add" id="btnAddTaskGlobal">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; vertical-align: middle;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Thêm Công Việc
+                    </button>
+                </header>
 
-                    <section class="card">
-                        <div class="table-container">
-                            <table class="report-table">
-                                <thead>
-                                    <tr>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Mã CV</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Tên công việc</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Mô tả CV</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Người phụ trách</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Ngày bắt đầu</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Ngày hoàn thành</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem;">Trạng thái</th>
-                                        <th style="background-color: #f1f5f9; padding: 1rem; width: 100px;">Thao tác
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="allTasksBody">
-                                    <!-- Dữ liệu render từ tasks.js -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                </main>
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div class="table-container">
+                        <table id="tasksTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px; text-align: center;">STT</th>
+                                    <th style="width: 100px;">Mã CV</th>
+                                    <th style="width: 200px;">Tên công việc</th>
+                                    <th style="width: 350px;">Mô tả chi tiết</th>
+                                    <th style="width: 180px;">Người phụ trách</th>
+                                    <th style="width: 100px;">Bắt đầu</th>
+                                    <th style="width: 100px;">Kết thúc</th>
+                                    <th style="width: 80px;">Tiến độ</th>
+                                    <th style="width: 130px;">Trạng thái</th>
+                                    <th style="width: 100px; text-align: center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="10" style="text-align: center; padding: 100px;">Đang tải danh sách công việc...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal (Thêm / Sửa Công Việc) -->
-    <div id="taskModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
+    <!-- Modal Thêm/Sửa Công Việc -->
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Thêm Công Việc Mới</h2>
                 <button class="btn-close" id="btnCloseModal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="taskForm">
-                    <div class="form-group">
-                        <label>Người phụ trách <span style="color: red;">*</span></label>
-                        <select id="modal_ma_nv" required>
-                            <option value="">-- Chọn nhân viên --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Mã Công Việc <span style="color: red;">*</span></label>
-                        <input type="text" id="modal_ma_cv" required placeholder="Ví dụ: NS.NV.1">
-                    </div>
-                    <div class="form-group">
-                        <label>Tên Công Việc <span style="color: red;">*</span></label>
-                        <input type="text" id="modal_ten_cv" required placeholder="Nhập tên công việc...">
-                    </div>
-                    <div class="form-group">
-                        <label>Mô tả yêu cầu</label>
-                        <textarea id="modal_mo_ta" rows="3" placeholder="Nhập mô tả chi tiết..."></textarea>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <div class="form-group" style="flex: 1;">
+                <form id="addForm">
+                    <input type="hidden" id="edit_id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Người phụ trách <span style="color: red;">*</span></label>
+                            <select id="modal_ma_nv" required>
+                                <option value="">-- Chọn nhân viên --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Mã Công Việc <span style="color: red;">*</span></label>
+                            <input type="text" id="modal_ma_cv" required placeholder="Ví dụ: NS.NV.1">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Tên Công Việc <span style="color: red;">*</span></label>
+                            <input type="text" id="modal_ten_cv" list="task_suggestions" required placeholder="Nhập hoặc chọn tên nhiệm vụ...">
+                            <datalist id="task_suggestions">
+                                <option value="Kiểm tra hệ thống định kỳ">
+                                <option value="Báo cáo doanh thu tháng">
+                                <option value="Bảo trì máy chủ">
+                                <option value="Hỗ trợ khách hàng">
+                                <option value="Cập nhật dữ liệu">
+                                <option value="Đào tạo nhân viên mới">
+                                <option value="Thiết kế Banner quảng cáo">
+                                <option value="Lập kế hoạch Marketing">
+                            </datalist>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Mô tả yêu cầu chi tiết</label>
+                            <textarea id="modal_mo_ta" placeholder="Mô tả nội dung công việc..." rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
                             <label>Loại công việc</label>
                             <select id="modal_loai_cv">
                                 <option value="Định kỳ">Định kỳ</option>
                                 <option value="Phát sinh">Phát sinh</option>
                             </select>
                         </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label>Cấp độ</label>
+                        <div class="form-group">
+                            <label>Cấp độ ưu tiên</label>
                             <select id="modal_cap_do_cv">
                                 <option value="1">Khẩn cấp</option>
-                                <option value="2">Cao</option>
+                                <option value="2">Quan trọng</option>
                                 <option value="3" selected>Bình thường</option>
                                 <option value="4">Thấp</option>
-                                <option value="5">Có thời gian cụ thể</option>
                             </select>
                         </div>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <div class="form-group" style="flex: 1;">
+                        <div class="form-group">
                             <label>Ngày bắt đầu</label>
                             <input type="date" id="modal_ngay_bat_dau">
                         </div>
-                        <div class="form-group" style="flex: 1;">
+                        <div class="form-group">
                             <label>Ngày hoàn thành</label>
                             <input type="date" id="modal_ngay_hoan_thanh">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select id="modal_trang_thai_cv">
-                            <option value="1">Đã hoàn thành</option>
-                            <option value="2" selected>Đang thực hiện</option>
-                            <option value="3">Quá hạn</option>
-                            <option value="4">Tạm dừng</option>
-                            <option value="5">Xin chỉ đạo</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Ghi chú</label>
-                        <input type="text" id="modal_ghi_chu" placeholder="Nhập ghi chú...">
+                        <div class="form-group">
+                            <label>Trạng thái</label>
+                            <select id="modal_trang_thai_cv">
+                                <option value="1">Đã hoàn thành</option>
+                                <option value="2" selected>Đang thực hiện</option>
+                                <option value="3">Quá hạn</option>
+                                <option value="4">Tạm dừng</option>
+                                <option value="5">Xin chỉ đạo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tiến độ: <span id="progressValue" style="color: var(--primary); font-weight: 800;">0%</span></label>
+                            <div class="progress-container">
+                                <input type="range" id="modal_tien_do" min="0" max="100" value="0">
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Ghi chú</label>
+                            <input type="text" id="modal_ghi_chu" placeholder="Lưu ý thêm...">
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn-cancel" id="btnCancelModal">Hủy bỏ</button>
-                <button class="btn-apply" id="btnApplyTask">Lưu Công Việc</button>
+                <button class="btn-cancel" id="btnCancelModal" style="padding: 10px 20px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; background: #f1f5f9; color: #64748b;">Hủy bỏ</button>
+                <button class="btn-apply" id="btnApply" style="padding: 10px 30px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;">Lưu Công Việc</button>
             </div>
         </div>
     </div>
 
-    <script src="tasks.js"></script>
-</body>
+    <script src="utils.js"></script>
+    <script src="tasks.js?v=17"></script>
+    <script>
+        // Update progress value and slider track color
+        const progressInput = document.getElementById('modal_tien_do');
+        const progressDisplay = document.getElementById('progressValue');
+        const statusSelect = document.getElementById('modal_trang_thai_cv');
+        
+        function updateSliderBg(input) {
+            const val = parseInt(input.value);
+            let color = '#ef4444'; // Đỏ (Thấp)
+            if (val >= 70) color = '#10b981'; // Xanh lá (Cao)
+            else if (val >= 30) color = '#f59e0b'; // Vàng/Cam (Trung bình)
+            
+            input.style.background = `linear-gradient(to right, ${color} ${val}%, #e2e8f0 ${val}%)`;
+            if (progressDisplay) {
+                progressDisplay.textContent = val + '%';
+                progressDisplay.style.color = color;
+            }
 
+            // Tự động chuyển trạng thái nếu 100%
+            if (val === 100 && statusSelect) {
+                statusSelect.value = "1"; // Đã hoàn thành
+            } else if (val < 100 && statusSelect && statusSelect.value === "1") {
+                statusSelect.value = "2"; // Đang thực hiện
+            }
+        }
+
+        if (progressInput && progressDisplay) {
+            updateSliderBg(progressInput);
+            progressInput.addEventListener('input', (e) => {
+                updateSliderBg(e.target);
+            });
+        }
+
+        if (statusSelect) {
+            statusSelect.addEventListener('change', (e) => {
+                if (e.target.value === "1" && progressInput) {
+                    progressInput.value = 100;
+                    updateSliderBg(progressInput);
+                }
+            });
+        }
+
+        // Expose function for external calls (like when editing)
+        window.updateModalSliderUI = () => {
+            if (progressInput) updateSliderBg(progressInput);
+        };
+    </script>
+
+</body>
 </html>
