@@ -8,8 +8,9 @@
     <!-- Modern Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="utils.js"></script>
     <style>
         /* Specific overrides for Task Page Table */
         .btn-edit, .btn-delete {
@@ -38,6 +39,205 @@
             height: 6px;
             cursor: pointer;
         }
+        .task-link:hover {
+            color: #2563eb !important;
+            text-decoration: none !important;
+        }
+
+        /* Hiệu ứng nhấp nháy cho việc khẩn cấp */
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .alert-urgent {
+            background-color: #fee2e2 !important;
+            color: #991b1b !important;
+            font-weight: 800 !important;
+            animation: pulse-red 2s infinite;
+            border-radius: 6px;
+            padding: 2px 8px;
+        }
+
+        .alert-warning {
+            background-color: #fef3c7 !important;
+            color: #92400e !important;
+            font-weight: 700 !important;
+            border-radius: 6px;
+            padding: 2px 8px;
+        }
+
+        /* Modal Overlay & Content Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+            position: relative;
+            animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalSlideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 25px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .btn-close {
+            background: #f1f5f9;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Filter Dropdown Styling */
+        .filter-dropdown {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            z-index: 9999;
+            min-width: 240px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: dropdownSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes dropdownSlideUp {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .filter-header {
+            padding: 16px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .filter-body {
+            padding: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            color: #334155;
+            font-weight: 600;
+        }
+        .filter-item:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+        
+        /* Custom Checkbox */
+        .filter-item input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            background: white;
+            flex-shrink: 0;
+        }
+        .filter-item input[type="checkbox"]:checked {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .filter-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 900;
+        }
+
+        .filter-footer {
+            padding: 12px 15px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fdfdfd;
+        }
+        .btn-filter-clear { 
+            font-size: 0.75rem; 
+            color: #ef4444; 
+            border: none; 
+            background: #fef2f2; 
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer; 
+            font-weight: 700; 
+            transition: all 0.2s;
+        }
+        .btn-filter-clear:hover { background: #fee2e2; }
+        .btn-filter-apply { 
+            font-size: 0.75rem; 
+            color: white; 
+            border: none; 
+            background: var(--primary); 
+            padding: 6px 16px;
+            border-radius: 8px;
+            cursor: pointer; 
+            font-weight: 800; 
+            transition: all 0.2s;
+        }
+        .btn-filter-apply:hover { transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3); }
     </style>
 </head>
 
@@ -76,6 +276,12 @@
                         <span>Tài khoản nhân viên</span>
                     </a>
                 </li>
+                <li>
+                    <a href="staff.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+                        <span>Công việc cá nhân</span>
+                    </a>
+                </li>
                 <li style="margin-top: auto;">
                     <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();" style="color: var(--danger);">
                         <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -88,20 +294,60 @@
         <!-- Nội dung chính -->
         <div class="main-wrapper">
             <div class="container">
-                <header class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <header class="page-header">
                     <div>
                         <h1 class="main-title">HỆ THỐNG QUẢN LÝ CÔNG VIỆC</h1>
                         <p class="page-subtitle">Theo dõi và cập nhật tiến độ công việc định kỳ của nhân viên</p>
                     </div>
-                    <button class="btn-add" id="btnAddTaskGlobal">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; vertical-align: middle;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        Thêm Công Việc
-                    </button>
                 </header>
+
+                <!-- Hệ thống Điểm nóng (Hotspot Board) -->
+                <div id="hotspotWidget" style="display: none; background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%); border-left: 5px solid #ef4444; padding: 20px; border-radius: 15px; margin-bottom: 25px; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <h3 style="color: #b91c1c; font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">🔥</span> ĐIỂM NÓNG: CÔNG VIỆC CẦN CHÚ Ý NGAY
+                        </h3>
+                        <span id="hotspotCount" style="background: #ef4444; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 800;">0 việc khẩn cấp</span>
+                    </div>
+                    <div id="hotspotList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                        <!-- Các thẻ việc khẩn cấp sẽ hiện ở đây -->
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 20px;">
+                    <div class="search-container" style="display: flex; gap: 10px; width: auto; align-items: center;">
+                        <div style="position: relative; width: 350px;">
+                            <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8;">🔍</span>
+                            <input type="text" id="taskSearch" placeholder="Tìm kiếm công việc..." style="width: 100%; padding: 12px 20px 12px 45px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-size: 0.9rem;">
+                        </div>
+                        <select id="filterStatus" style="width: 180px; padding: 12px 15px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-size: 0.9rem; background: white;">
+                            <option value="all">Tất cả nhiệm vụ</option>
+                            <option value="periodic">Công việc định kỳ</option>
+                            <option value="arising">Công việc phát sinh</option>
+                            <option value="due-soon">Sắp quá hạn</option>
+                        </select>
+
+                        <!-- Month Navigation UI -->
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; background: white; padding: 8px 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-left: 10px;">
+                            <button id="btnPrevMonth" style="background: transparent; border: none; color: #64748b; padding: 5px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: color 0.2s;">&#10094;</button>
+                            <span id="monthFilterDisplay" style="font-family: 'Be Vietnam Pro', sans-serif; font-weight: 800; color: #1e4b8d; font-size: 0.9rem; min-width: 120px; text-align: center; text-transform: uppercase;">Tháng 05 / 2026</span>
+                            <button id="btnNextMonth" style="background: transparent; border: none; color: #64748b; padding: 5px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: color 0.2s;">&#10095;</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div id="hotspotStats" style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
+                            Cập nhật: <span id="lastUpdateTime">Vừa xong</span>
+                        </div>
+
+                        <button class="btn-add" id="btnAddTaskGlobal" style="margin: 0;">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 8px; vertical-align: middle;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Thêm Công Việc
+                        </button>
+                    </div>
+                </div>
 
                 <div class="card" style="padding: 0; overflow: hidden;">
                     <div class="table-container">
@@ -110,14 +356,33 @@
                                 <tr>
                                     <th style="width: 50px; text-align: center;">STT</th>
                                     <th style="width: 100px;">Mã CV</th>
-                                    <th style="width: 200px;">Tên công việc</th>
-                                    <th style="width: 350px;">Mô tả chi tiết</th>
-                                    <th style="width: 180px;">Người phụ trách</th>
-                                    <th style="width: 100px;">Bắt đầu</th>
-                                    <th style="width: 100px;">Kết thúc</th>
-                                    <th style="width: 80px;">Tiến độ</th>
-                                    <th style="width: 130px;">Trạng thái</th>
-                                    <th style="width: 100px; text-align: center;">Thao tác</th>
+                                    <th style="width: 300px;">Tên công việc</th>
+                                    <th style="width: 180px; cursor: pointer;" id="headerAssignee">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            Người phụ trách
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="filter-icon"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                                        </div>
+                                    </th>
+                                    <th style="width: 110px; text-align: center; cursor: pointer;" id="headerStart">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                            Bắt đầu
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        </div>
+                                    </th>
+                                    <th style="width: 110px; text-align: center; cursor: pointer;" id="headerEnd">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                            Kết thúc
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sort-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        </div>
+                                    </th>
+                                    <th style="width: 130px; text-align: center;">Tiến độ</th>
+                                    <th style="width: 140px; text-align: center; cursor: pointer;" id="headerStatus">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                            Trạng thái
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="filter-icon"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                                        </div>
+                                    </th>
+                                    <th style="width: 160px; text-align: center;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -132,15 +397,44 @@
         </div>
     </div>
 
+    <!-- Filter Dropdown Container -->
+    <div id="filterDropdown" class="filter-dropdown">
+        <div class="filter-header" id="filterTitle">Lọc dữ liệu</div>
+        <div class="filter-body">
+            <!-- Date Filter UI (Hidden by default) -->
+            <div id="dateFilterUI" style="display: none; flex-direction: column; gap: 12px; padding: 5px;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #64748b;">Chọn ngày cụ thể:</label>
+                    <input type="date" id="filterDateInput" onchange="applySpecificDateFilter(this.value)" style="width: 100%; padding: 10px; border-radius: 10px; border: 2px solid #f1f5f9; outline: none; font-family: inherit; font-weight: 600; color: #1e293b;">
+                </div>
+                <button onclick="setFilterToday()" style="width: 100%; padding: 10px; border-radius: 10px; border: none; background: #e0e7ff; color: #4338ca; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                    📅 Lọc hôm nay
+                </button>
+            </div>
+            <!-- Checklist UI -->
+            <div id="filterList" style="display: flex; flex-direction: column; gap: 4px;">
+                <!-- Items populated via JS -->
+            </div>
+        </div>
+        <div class="filter-footer">
+            <button class="btn-filter-clear" onclick="clearColumnFilter()">Xóa lọc</button>
+            <button class="btn-filter-apply" onclick="closeFilterDropdown()">Đóng</button>
+        </div>
+    </div>
+
     <!-- Modal Thêm/Sửa Công Việc -->
     <div id="addModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Thêm Công Việc Mới</h2>
-                <button class="btn-close" id="btnCloseModal">&times;</button>
+        <div class="modal-content glass-panel" style="border-radius: 32px; width: 800px; animation: modalBounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 30px 40px; border-bottom: none; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -40px; left: -40px; width: 150px; height: 150px; background: rgba(99, 102, 241, 0.15); border-radius: 50%; filter: blur(50px);"></div>
+                <div style="position: relative; z-index: 1;">
+                    <h2 id="modalTitle" style="color: white; font-size: 1.6rem; font-weight: 900; letter-spacing: -0.8px;">Quản Lý Nhiệm Vụ</h2>
+                    <p style="font-size: 0.85rem; opacity: 0.6; margin-top: 4px; font-weight: 500;">Thiết lập và phân bổ công việc cho nhân sự</p>
+                </div>
+                <button class="btn-close" id="btnCloseModal" style="color: white; background: rgba(255,255,255,0.1); width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="addForm">
+                <form id="addForm" onsubmit="return false;">
                     <input type="hidden" id="edit_id">
                     <div class="form-grid">
                         <div class="form-group">
@@ -170,6 +464,7 @@
                         <div class="form-group full-width">
                             <label>Mô tả yêu cầu chi tiết</label>
                             <textarea id="modal_mo_ta" placeholder="Mô tả nội dung công việc..." rows="3"></textarea>
+                            <div id="modal_file_list" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
                         </div>
                         <div class="form-group">
                             <label>Loại công việc</label>
@@ -218,15 +513,24 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" id="btnCancelModal" style="padding: 10px 20px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; background: #f1f5f9; color: #64748b;">Hủy bỏ</button>
-                <button class="btn-apply" id="btnApply" style="padding: 10px 30px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;">Lưu Công Việc</button>
+            <div class="modal-footer" style="padding: 25px 40px; background: #f8fafc; border-top: 1px solid #e2e8f0; gap: 15px;">
+                <button class="btn-cancel" id="btnCancelModal" style="padding: 14px 28px; border-radius: 14px; font-weight: 800; background: white; color: #64748b; border: 1.5px solid #e2e8f0; transition: all 0.2s;">Hủy bỏ</button>
+                <button class="btn-apply" id="btnApply" style="padding: 14px 40px; background: linear-gradient(135deg, var(--primary), #4f46e5); color: white; border: none; border-radius: 14px; font-weight: 800; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); transition: all 0.2s;">Lưu Thay Đổi</button>
             </div>
         </div>
     </div>
 
-    <script src="utils.js"></script>
-    <script src="tasks.js?v=17"></script>
+    <style>
+        @keyframes modalBounceIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+
     <script>
         // Update progress value and slider track color
         const progressInput = document.getElementById('modal_tien_do');
@@ -248,8 +552,17 @@
             // Tự động chuyển trạng thái nếu 100%
             if (val === 100 && statusSelect) {
                 statusSelect.value = "1"; // Đã hoàn thành
-            } else if (val < 100 && statusSelect && statusSelect.value === "1") {
-                statusSelect.value = "2"; // Đang thực hiện
+            } else if (val < 100 && statusSelect) {
+                const deadlineInput = document.getElementById('modal_ngay_hoan_thanh');
+                let targetStatus = "2"; // Đang thực hiện
+                if (deadlineInput && deadlineInput.value) {
+                    const d = new Date(deadlineInput.value);
+                    d.setHours(0,0,0,0);
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    if (d < today) targetStatus = "3"; // Quá hạn
+                }
+                statusSelect.value = targetStatus;
             }
         }
 
@@ -275,5 +588,116 @@
         };
     </script>
 
+    <!-- Modal Quản Lý Công Việc Con (Sub-tasks) -->
+    <div id="subTaskModal" class="modal-overlay" style="z-index: 3000;">
+        <div class="modal-content glass-panel" style="width: 1400px; max-width: 98vw; height: 94vh; border-radius: 32px; border: 1px solid rgba(255,255,255,0.2); display: flex; flex-direction: column;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 30px 40px; border-bottom: none; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(99, 102, 241, 0.1); border-radius: 50%; filter: blur(60px);"></div>
+                <div style="position: relative; z-index: 1;">
+                    <h2 id="subTaskModalTitle" style="color: white; font-size: 1.6rem; font-weight: 900; letter-spacing: -0.8px;">Các Bước Thực Hiện</h2>
+                    <p id="parentTaskName" style="font-size: 0.95rem; opacity: 0.7; margin-top: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%;"></span>
+                        Công việc: <span style="color: #818cf8;">...</span>
+                    </p>
+                </div>
+                <button class="btn-close" id="btnCloseSubTaskModal" style="color: white; background: rgba(255,255,255,0.1); width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 40px; background: #f8fafc; position: relative; flex: 1; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h3 style="font-size: 1.2rem; color: #0f172a; font-weight: 900; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px;">
+                        <span style="background: linear-gradient(to bottom, var(--primary), #818cf8); width: 6px; height: 28px; border-radius: 10px;"></span>
+                        Tiến độ các bước thực hiện
+                    </h3>
+                    <div style="display: flex; gap: 12px;">
+                        <!-- Buttons removed at user request -->
+                    </div>
+                </div>
+
+                <div class="table-container" style="background: white; border-radius: 24px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; overflow-x: hidden !important; transition: all 0.3s;">
+                    <table class="premium-table" style="width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed;">
+                        <thead>
+                            <tr style="background: #fdfdfd;">
+                                <th style="width: 350px; text-align: left; padding: 15px 20px; font-size: 0.85rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; font-weight: 800;">Mô tả chi tiết công việc</th>
+                                <th style="width: 180px; text-align: left; padding: 15px 20px; font-size: 0.85rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; font-weight: 800;">Người phụ trách</th>
+                                <th style="width: 110px; text-align: left; padding: 15px 20px; font-size: 0.85rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; font-weight: 800;">Bắt đầu</th>
+                                <th style="width: 110px; text-align: left; padding: 15px 20px; font-size: 0.85rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; font-weight: 800;">Hoàn thành</th>
+                                <th style="width: 120px; text-align: left; padding: 15px 20px; font-size: 0.85rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; font-weight: 800;">Cấp độ</th>
+                                <th style="width: 160px; text-align: left; padding: 15px 20px; font-size: 0.85rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; font-weight: 800;">Tiến độ (%)</th>
+                                <th style="width: 150px; text-align: left; padding: 15px 20px; font-size: 0.85rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; font-weight: 800;">Trạng thái</th>
+                                <th style="width: 100px; text-align: center; padding: 15px 20px; font-size: 0.85rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; font-weight: 800;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subTaskTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: flex-end; gap: 12px; border-radius: 0 0 16px 16px;">
+                <button class="btn-cancel" id="btnCloseSubTaskModalFooter" style="background: white; color: #64748b; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mini Modal để Thêm/Sửa Bước Con -->
+    <div id="subTaskEditModal" class="modal-overlay" style="z-index: 5000;">
+        <div class="modal-content glass-panel" style="border-radius: 32px; width: 600px; animation: modalBounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 25px 30px; border-bottom: none; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -40px; left: -40px; width: 120px; height: 120px; background: rgba(99, 102, 241, 0.15); border-radius: 50%; filter: blur(40px);"></div>
+                <div style="position: relative; z-index: 1;">
+                    <h3 id="subTaskEditTitle" style="color: white; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;">Chỉnh sửa bước</h3>
+                </div>
+                <button type="button" class="btn-close" id="btnCloseSubTaskEditModal" style="color: white; background: rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <form id="subTaskForm" onsubmit="return false;" class="form-grid" style="grid-template-columns: 1fr;">
+                    <input type="hidden" id="sub_id">
+                    <input type="hidden" id="sub_ma_cv_cha">
+                    <div class="form-group">
+                        <label>Tên bước công việc</label>
+                        <input type="text" id="sub_ten_buoc" required>
+                    </div>
+                    <input type="hidden" id="sub_ma_nv">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Ngày bắt đầu</label>
+                            <input type="date" id="sub_ngay_bd">
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày hoàn thành</label>
+                            <input type="date" id="sub_ngay_hoan_thanh">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Cấp độ</label>
+                            <select id="sub_cap_do">
+                                <option value="1">Khẩn cấp</option>
+                                <option value="2">Cao</option>
+                                <option value="3" selected>Bình thường</option>
+                                <option value="4">Thấp</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Trạng thái</label>
+                            <select id="sub_trang_thai">
+                                <option value="1">Hoàn thành</option>
+                                <option value="2" selected>Đang thực hiện</option>
+                                <option value="3">Quá hạn</option>
+                                <option value="4">Tạm dừng</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" id="sub_tien_do" value="0">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="btnCancelSubEdit">Hủy</button>
+                <button type="button" class="btn-apply" id="btnSaveSubTask">Lưu bước</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="tasks.js"></script>
 </body>
 </html>

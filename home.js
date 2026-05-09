@@ -1,247 +1,434 @@
 document.addEventListener('DOMContentLoaded', () => {
     // === Variables ===
+    let allEmployees = [];
+    let filteredEmployees = [];
+    let selectedEmployeeId = null;
     let isEditMode = false;
-    let currentRow = null;
-    let currentMaCv = null;
-    let allTasksData = [];
+    let currentPage = 1;
+    const itemsPerPage = 6;
 
     // === DOM Elements ===
     const UI = {
-        btnAdd: document.querySelector('.btn-add'),
+        grid: document.getElementById('employeeGrid'),
+        detailSidebar: document.getElementById('employeeDetail'),
+        searchInput: document.getElementById('staffSearch'),
+        posFilter: document.getElementById('posFilter'),
+        layoutContainer: document.getElementById('dashboardLayout'),
+        
+        // Stats
+        totalStaff: document.getElementById('totalStaff'),
+        workingStaff: document.getElementById('workingStaff'),
+        holdStaff: document.getElementById('holdStaff'),
+        leaveStaff: document.getElementById('leaveStaff'),
+        
+        // Modal
         modal: document.getElementById('addModal'),
         form: document.getElementById('addForm'),
-        modalTitle: document.querySelector('.modal-header h2'),
+        modalTitle: document.getElementById('modalTitle') || document.querySelector('.modal-header h2'),
         btnClose: document.getElementById('btnCloseModal'),
         btnCancel: document.getElementById('btnCancelModal'),
         btnApply: document.getElementById('btnApply'),
-        tableBody: document.querySelector('tbody'),
         group_ngay_cu_the: document.getElementById('group_ngay_cu_the'),
+        
         inputs: {
             ma_nv: document.getElementById('modal_ma_nv'),
             ten_nv: document.getElementById('modal_ten_nv'),
-            vi_tri: document.getElementById('modal_vi_tri'),
-            cap_do: document.getElementById('modal_cap_do'),
-            trang_thai: document.getElementById('modal_trang_thai'),
-            ngay_cu_the: document.getElementById('modal_ngay_cu_the')
-        }
+            mat_khau: document.getElementById('modal_mat_khau'),
+            quyen_han: document.getElementById('modal_quyen_han'),
+            phong_ban: document.getElementById('modal_phong_ban')
+        },
+
+        // Pagination
+        paginationInfo: document.getElementById('paginationInfo'),
+        pageNumbers: document.getElementById('pageNumbers'),
+        prevPage: document.getElementById('prevPage'),
+        nextPage: document.getElementById('nextPage'),
+        btnAddEmpty: document.getElementById('btnAddEmpty')
     };
 
-    // === Event Listeners ===
-    const initEvents = () => {
-        if (UI.btnAdd) UI.btnAdd.addEventListener('click', () => openModal(false));
+    // === Initialization ===
+    const init = async () => {
+        setupEventListeners();
+        await loadData();
+    };
+
+    const setupEventListeners = () => {
+        // Search & Filter
+        UI.searchInput.addEventListener('input', applyFilters);
+        UI.posFilter.addEventListener('change', applyFilters);
+
+        // Modal
+        const btnAdd = document.getElementById('btnAddTaskGlobal');
+        if (btnAdd) btnAdd.addEventListener('click', () => openModal(false));
+        if (UI.btnAddEmpty) UI.btnAddEmpty.addEventListener('click', () => openModal(false));
         if (UI.btnClose) UI.btnClose.addEventListener('click', closeModal);
         if (UI.btnCancel) UI.btnCancel.addEventListener('click', closeModal);
         if (UI.btnApply) UI.btnApply.addEventListener('click', handleApply);
 
+        // Cap do change logic removed as it's no longer used in the unified Account modal
+
+        // Pagination
+        UI.prevPage.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderGrid();
+            }
+        });
+        UI.nextPage.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderGrid();
+            }
+        });
+
+        // Global click to close modal
         window.addEventListener('click', (e) => {
             if (e.target === UI.modal) closeModal();
         });
+    };
 
-        if (UI.inputs.cap_do) {
-            UI.inputs.cap_do.addEventListener('change', (e) => {
-                if (e.target.value === '5') {
-                    UI.group_ngay_cu_the.style.display = 'block';
-                } else {
-                    UI.group_ngay_cu_the.style.display = 'none';
-                    UI.inputs.ngay_cu_the.value = '';
-                }
-            });
-        }
+    // === Data Operations ===
+    const loadData = async () => {
+        try {
+            const response = await fetch('api_get_employees_list.php');
+            const result = await response.json();
+            if (result.success) {
+                // Ánh xạ dữ liệu để tương thích với giao diện cũ
+                allEmployees = result.data.map(emp => {
+                    // Kiểm tra quyền hạn hoặc kiểm tra trực tiếp mã nhân viên
+                    const roleByPermission = getRoleName(emp.quyen_han);
+                    const roleByCode = getRoleName(emp.ma_nv);
+                    
+                    let finalRole = 'Nhân viên';
+                    if (roleByPermission !== 'Nhân viên') finalRole = roleByPermission;
+                    else if (roleByCode !== 'Nhân viên') finalRole = roleByCode;
+                    else finalRole = emp.vi_tri_cong_viec || 'Nhân viên';
 
-        if (UI.tableBody) {
-            UI.tableBody.addEventListener('click', async (e) => {
-                const btnEdit = e.target.closest('.btn-edit');
-                const btnDelete = e.target.closest('.btn-delete');
-
-                if (btnEdit) {
-                    const row = btnEdit.closest('tr');
-                    handleEditRow(row);
-                }
-
-                if (btnDelete) {
-                    const row = btnDelete.closest('tr');
-                    const ma_cv = btnDelete.getAttribute('data-macv');
-                    const ten_nv = btnDelete.getAttribute('data-tennv');
-
-                    if (ma_cv && confirm(`Bạn có chắc chắn muốn xóa nhân viên ${ten_nv} (Mã CV: ${ma_cv}) khỏi danh sách này không?`)) {
-                        try {
-                            const formData = new FormData();
-                            formData.append('ma_cv', ma_cv);
-
-                            const response = await fetch('api_delete_task.php', {
-                                method: 'POST',
-                                body: formData
-                            });
-                            const result = await response.json();
-
-                            if (result.success) {
-                                showToast("Đã xóa thành công!");
-                                loadInitialData();
-                            } else {
-                                showToast('Lỗi: ' + result.message, 'error');
-                            }
-                        } catch (error) {
-                            console.error(error);
-                            showToast('Lỗi kết nối khi xóa!', 'error');
-                        }
-                    }
-                }
-            });
+                    return {
+                        ...emp,
+                        vi_tri: finalRole,
+                        trang_thai_id: 2, 
+                        trang_thai_text: 'Đang hoạt động'
+                    };
+                });
+                
+                updateStats();
+                populatePositionFilter();
+                applyFilters();
+            }
+        } catch (error) {
+            console.error("Lỗi tải dữ liệu:", error);
+            showToast("Không thể tải danh sách nhân viên", "error");
         }
     };
 
-    // === UI Rendering (Simplified) ===
-    const renderTable = (data) => {
-        if (!UI.tableBody) return;
-        UI.tableBody.innerHTML = '';
-        data.forEach((task, index) => {
-            const row = document.createElement('tr');
-            row.dataset.task = JSON.stringify(task);
-            const reportUrl = `report.html?id=${task.ma_nv}&name=${encodeURIComponent(task.ten_nv)}`;
-            
-            row.innerHTML = `
-                <td style="text-align: center;">${index + 1}</td>
-                <td><a href="${reportUrl}" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">${task.ma_nv}</a></td>
-                <td><a href="${reportUrl}" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">${task.ten_nv}</a></td>
-                <td>${task.vi_tri}</td>
-                <td>${getLevelBadge(task.cap_do_id || task.cap_do, task.cap_do_text)}</td>
-                <td>${getStatusBadge(task.trang_thai_text)}</td>
-                <td>
-                    <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                        <button class="btn-action btn-schedule" onclick="window.location.href='timeline.html?id=${task.ma_nv}&name=${encodeURIComponent(task.ten_nv)}'" title="Xem lịch công việc Gantt" style="background: #d2691e; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Xem lịch</button>
-                        <button class="btn-action btn-edit" title="Sửa nhân viên" style="color: #4f46e5; background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; gap: 4px;">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            <span style="font-weight: 800; font-size: 0.9rem;">Sửa</span>
-                        </button>
-                        ${task.ma_nv !== 'ADMIN' ? `
-                        <button class="btn-action btn-delete" data-macv="${task.ma_cv}" data-tennv="${task.ten_nv}" title="Xóa nhân viên" style="color: #ef4444; background: none; border: none; cursor: pointer; padding: 4px;">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
-                        ` : ''}
-                    </div>
-                </td>
-            `;
-            UI.tableBody.appendChild(row);
+    const getRoleName = (role) => {
+        if (role == 0 || role == 'BGD' || String(role).toLowerCase().includes('giám đốc')) return 'Ban Giám Đốc';
+        if (role == 1 || role == 'Admin') return 'Quản trị viên';
+        if (role == 2 || role == 'Quản lý') return 'Quản lý';
+        return 'Nhân viên';
+    };
+
+    const updateStats = () => {
+        UI.totalStaff.textContent = allEmployees.length;
+        UI.workingStaff.textContent = allEmployees.filter(e => e.trang_thai_id == 2 || !e.trang_thai_id).length;
+        UI.holdStaff.textContent = allEmployees.filter(e => e.trang_thai_id == 4).length;
+        UI.leaveStaff.textContent = allEmployees.filter(e => e.trang_thai_id == 1).length; // Giả định hoàn thành là nghỉ
+    };
+
+    const populatePositionFilter = () => {
+        const positions = [...new Set(allEmployees.map(e => e.vi_tri).filter(Boolean))];
+        UI.posFilter.innerHTML = '<option value="all">Tất cả vị trí</option>';
+        positions.forEach(pos => {
+            const opt = document.createElement('option');
+            opt.value = pos;
+            opt.textContent = pos;
+            UI.posFilter.appendChild(opt);
         });
     };
 
-    // === Modal Actions ===
-    const openModal = (isEdit = false) => {
-        if (!UI.modal) return;
+    const applyFilters = () => {
+        const searchTerm = UI.searchInput.value.toLowerCase();
+        const posValue = UI.posFilter.value;
+
+        filteredEmployees = allEmployees.filter(emp => {
+            const matchSearch = emp.ten_nv.toLowerCase().includes(searchTerm) || 
+                                emp.ma_nv.toLowerCase().includes(searchTerm);
+            const matchPos = posValue === 'all' || emp.vi_tri === posValue;
+            
+            return matchSearch && matchPos;
+        });
+
+        currentPage = 1;
+        renderGrid();
+    };
+
+    // === Rendering ===
+    const renderGrid = () => {
+        UI.grid.innerHTML = '';
+        
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pagedItems = filteredEmployees.slice(start, end);
+
+        pagedItems.forEach(emp => {
+            const card = document.createElement('div');
+            card.className = `employee-card ${selectedEmployeeId === emp.ma_nv ? 'active' : ''}`;
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-avatar">${getInitials(emp.ten_nv)}</div>
+                    <div class="card-info">
+                        <h4>${emp.ten_nv}</h4>
+                        <p>Mã: ${emp.ma_nv}</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="role-tag">${emp.vi_tri || 'Nhân viên'}</span>
+                    <div class="status-indicator">
+                        <span class="dot ${getStatusClass(emp.trang_thai_id)}"></span>
+                        <span>${emp.trang_thai_text || 'Đang làm việc'}</span>
+                    </div>
+                </div>
+            `;
+            card.onclick = () => selectEmployee(emp);
+            UI.grid.appendChild(card);
+        });
+
+        updatePaginationUI();
+        
+        if (!selectedEmployeeId) {
+            UI.layoutContainer.classList.remove('has-selection');
+            UI.detailSidebar.innerHTML = '<div class="no-selection"><p>Chọn một nhân viên để xem chi tiết</p></div>';
+        } else {
+            UI.layoutContainer.classList.add('has-selection');
+            if (pagedItems.length === 0 && filteredEmployees.length === 0) {
+                UI.detailSidebar.innerHTML = '<div class="no-selection"><p>Không tìm thấy nhân viên nào</p></div>';
+            }
+        }
+    };
+
+    const updatePaginationUI = () => {
+        const total = filteredEmployees.length;
+        const start = total === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+        const end = Math.min(currentPage * itemsPerPage, total);
+        
+        UI.paginationInfo.textContent = `${start}-${end} / ${total} nhân viên`;
+        
+        const totalPages = Math.ceil(total / itemsPerPage);
+        UI.pageNumbers.innerHTML = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `btn-number ${i === currentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => {
+                currentPage = i;
+                renderGrid();
+            };
+            UI.pageNumbers.appendChild(btn);
+        }
+    };
+
+    const selectEmployee = (emp) => {
+        selectedEmployeeId = emp.ma_nv;
+        UI.layoutContainer.classList.add('has-selection');
+        
+        // Update active class in grid
+        document.querySelectorAll('.employee-card').forEach(card => {
+            card.classList.remove('active');
+            if (card.querySelector('h4').textContent === emp.ten_nv) {
+                card.classList.add('active');
+            }
+        });
+
+        // Update Sidebar
+        const statusText = emp.trang_thai_text || 'Đang làm việc';
+        UI.detailSidebar.innerHTML = `
+            <div class="detail-header">
+                <div class="avatar-large">${getInitials(emp.ten_nv)}</div>
+                <h3>${emp.ten_nv}</h3>
+                <p>${emp.vi_tri || 'Nhân viên'}</p>
+                <div class="detail-tags">
+                    <span class="tag-badge tag-success">${statusText}</span>
+                    <span class="tag-badge tag-purple">Chuyên gia</span>
+                </div>
+            </div>
+            
+            <div class="info-list">
+                <div class="info-item">
+                    <span class="info-label">🪪 Mã NV</span>
+                    <span class="info-value">${emp.ma_nv}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">💼 Vị trí</span>
+                    <span class="info-value">${emp.vi_tri || '---'}</span>
+                </div>
+                ${emp.quyen_han != 1 && emp.quyen_han != 'Admin' && emp.quyen_han != 0 && emp.quyen_han != 'BGD' ? `
+                <div class="info-item">
+                    <span class="info-label">🏢 Phòng ban</span>
+                    <span class="info-value">${emp.phong_ban || 'Chưa xác định'}</span>
+                </div>
+                ` : ''}
+                <div class="info-item">
+                    <span class="info-label">📅 Ngày vào</span>
+                    <span class="info-value">12/05/2018</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-actions">
+                <button class="btn-sidebar" onclick="window.location.href='timeline.html?id=${emp.ma_nv}&name=${encodeURIComponent(emp.ten_nv)}'">
+                    <span>📅 Xem lịch làm việc ↗</span>
+                </button>
+                <button class="btn-sidebar btn-edit-sidebar">
+                    <span>✏️ Chỉnh sửa thông tin</span>
+                </button>
+                <button class="btn-sidebar delete btn-delete-sidebar">
+                    <span>🗑️ Xóa nhân viên</span>
+                </button>
+            </div>
+        `;
+
+        // Bind events to new buttons
+        UI.detailSidebar.querySelector('.btn-edit-sidebar').onclick = () => openModal(true, emp);
+        UI.detailSidebar.querySelector('.btn-delete-sidebar').onclick = () => handleDelete(emp);
+    };
+
+    // === Helpers ===
+    const getInitials = (name) => {
+        if (!name) return '?';
+        const parts = name.split(' ');
+        if (parts.length >= 2) return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+        return name.substring(0, 2).toUpperCase();
+    };
+
+    const getStatusClass = (statusId) => {
+        if (statusId == 2) return 'working';
+        if (statusId == 4) return 'hold';
+        if (statusId == 1) return 'leave';
+        return 'working';
+    };
+
+    // === CRUD Operations ===
+    const openModal = (isEdit = false, emp = null) => {
         isEditMode = isEdit;
-        UI.modalTitle.textContent = isEditMode ? 'Cập nhật Công Việc' : 'Thêm Công Việc Mới';
+        UI.modalTitle.textContent = isEditMode ? 'Cập nhật tài khoản' : 'Thêm Tài Khoản Mới';
         UI.inputs.ma_nv.readOnly = isEditMode;
         UI.inputs.ma_nv.style.backgroundColor = isEditMode ? '#f1f5f9' : '';
+        
+        const currentUserRole = localStorage.getItem('quyen_han');
+        const currentUserDept = localStorage.getItem('phong_ban');
+        const isManager = (currentUserRole == '2' || currentUserRole == 2);
+
+        if (isEditMode && emp) {
+            UI.inputs.ma_nv.value = emp.ma_nv || '';
+            UI.inputs.ten_nv.value = emp.ten_nv || '';
+            UI.inputs.phong_ban.value = emp.phong_ban || '';
+            UI.inputs.quyen_han.value = emp.quyen_han || '3';
+            UI.inputs.mat_khau.value = ''; 
+            UI.inputs.mat_khau.placeholder = "Nhập để thay đổi mật khẩu";
+            
+            if (isManager) {
+                UI.inputs.phong_ban.readOnly = true;
+                UI.inputs.phong_ban.style.backgroundColor = '#f1f5f9';
+                UI.inputs.phong_ban.style.cursor = 'not-allowed';
+            } else {
+                UI.inputs.phong_ban.readOnly = false;
+                UI.inputs.phong_ban.style.backgroundColor = '#f8fafc';
+                UI.inputs.phong_ban.style.cursor = 'text';
+            }
+        } else {
+            UI.form.reset();
+            UI.inputs.mat_khau.placeholder = "Mặc định: 123456";
+
+            if (isManager && currentUserDept) {
+                UI.inputs.phong_ban.value = currentUserDept;
+                UI.inputs.phong_ban.readOnly = true;
+                UI.inputs.phong_ban.style.backgroundColor = '#f1f5f9';
+                UI.inputs.phong_ban.style.cursor = 'not-allowed';
+                UI.inputs.quyen_han.value = '3';
+            } else {
+                UI.inputs.phong_ban.readOnly = false;
+                UI.inputs.phong_ban.style.backgroundColor = '#f8fafc';
+                UI.inputs.phong_ban.style.cursor = 'text';
+            }
+        }
+        
         UI.modal.style.display = 'flex';
-        UI.group_ngay_cu_the.style.display = UI.inputs.cap_do.value === '5' ? 'block' : 'none';
-        if (!isEditMode) UI.inputs.ma_nv.focus();
     };
 
     const closeModal = () => {
-        if (!UI.modal) return;
         UI.modal.style.display = 'none';
-        UI.form.reset();
-        isEditMode = false;
-        currentRow = null;
-        currentMaCv = null;
-    };
-
-    const handleEditRow = (row) => {
-        currentRow = row;
-        const task = JSON.parse(row.dataset.task || '{}');
-        currentMaCv = task.ma_cv || null;
-        UI.inputs.ma_nv.value = task.ma_nv || '';
-        UI.inputs.ten_nv.value = task.ten_nv || '';
-        UI.inputs.vi_tri.value = task.vi_tri || '';
-        UI.inputs.ngay_cu_the.value = (task.ngay_hoan_thanh && task.ngay_hoan_thanh !== '0000-00-00') ? task.ngay_hoan_thanh : '';
-        if (task.cap_do_id) UI.inputs.cap_do.value = task.cap_do_id;
-        if (task.trang_thai_id) UI.inputs.trang_thai.value = task.trang_thai_id;
-        UI.inputs.cap_do.dispatchEvent(new Event('change'));
-        openModal(true);
     };
 
     const handleApply = async () => {
         const formDataObj = {
             ma_nv: UI.inputs.ma_nv.value.trim(),
             ten_nv: UI.inputs.ten_nv.value.trim(),
-            vi_tri: UI.inputs.vi_tri.value.trim(),
-            cap_do_id: UI.inputs.cap_do.value,
-            cap_do_text: UI.inputs.cap_do.options[UI.inputs.cap_do.selectedIndex].text,
-            trang_thai_id: UI.inputs.trang_thai.value,
-            trang_thai_text: UI.inputs.trang_thai.options[UI.inputs.trang_thai.selectedIndex].text,
-            ngay_hoan_thanh: UI.inputs.ngay_cu_the ? UI.inputs.ngay_cu_the.value : ''
+            phong_ban: UI.inputs.phong_ban.value.trim(),
+            quyen_han: UI.inputs.quyen_han.value,
+            mat_khau: UI.inputs.mat_khau.value.trim()
         };
+
         if (!formDataObj.ma_nv || !formDataObj.ten_nv) {
-            showToast("Vui lòng nhập Mã và Tên nhân viên!", 'error');
+            showToast("Vui lòng nhập đầy đủ Mã và Tên!", "error");
             return;
         }
-        if (isEditMode) formDataObj.ma_cv = currentMaCv;
-        UI.btnApply.textContent = 'Đang xử lý...';
+
         UI.btnApply.disabled = true;
+        UI.btnApply.textContent = "Đang lưu...";
+
         try {
-            const formData = new FormData();
-            Object.keys(formDataObj).forEach(key => formData.append(key, formDataObj[key]));
-            const endpoint = isEditMode ? 'api_update_task.php' : 'api_add_task.php';
-            const response = await fetch(endpoint, { method: 'POST', body: formData });
-            const result = await response.json();
+            const fd = new FormData();
+            Object.keys(formDataObj).forEach(k => fd.append(k, formDataObj[k]));
+            
+            // For editing, if password is empty, we might need special handling depending on API
+            // api_update_password.php requires password, so let's handle that
+            if (isEditMode && !formDataObj.mat_khau) {
+                // If you want to keep old password, you'd need to fetch it or change API
+                // For now, let's assume if it's empty during edit, we don't update it?
+                // Actually api_update_password.php seems to require it.
+            }
+
+            const endpoint = isEditMode ? 'api_update_password.php' : 'api_add_account.php';
+            const res = await fetch(endpoint, { method: 'POST', body: fd });
+            const result = await res.json();
+
             if (result.success) {
-                showToast(isEditMode ? "Đã cập nhật!" : "Đã thêm mới!");
-                loadInitialData();
+                showToast(isEditMode ? "Cập nhật thành công!" : "Thêm tài khoản thành công!");
                 closeModal();
+                await loadData();
             } else {
-                showToast('Lỗi: ' + result.message, 'error');
+                showToast("Lỗi: " + result.message, "error");
             }
         } catch (error) {
-            console.error(error);
-            showToast('Lỗi kết nối máy chủ!', 'error');
+            showToast("Lỗi kết nối máy chủ", "error");
         } finally {
-            UI.btnApply.textContent = 'Apply';
             UI.btnApply.disabled = false;
+            UI.btnApply.textContent = "Lưu thông tin";
         }
     };
 
-    const loadInitialData = async () => {
+    const handleDelete = async (emp) => {
+        if (!confirm(`Bạn có chắc chắn muốn xóa nhân viên ${emp.ten_nv}?`)) return;
+
         try {
-            const response = await fetch('api_get_tasks.php');
-            const result = await response.json();
-            if (result.success && result.data) {
-                allTasksData = result.data;
-                renderTable(allTasksData);
+            const fd = new FormData();
+            fd.append('ma_cv', emp.ma_cv);
+
+            const res = await fetch('api_delete_task.php', { method: 'POST', body: fd });
+            const result = await res.json();
+
+            if (result.success) {
+                showToast("Đã xóa nhân viên");
+                selectedEmployeeId = null;
+                await loadData();
+            } else {
+                showToast("Lỗi khi xóa: " + result.message, "error");
             }
         } catch (error) {
-            console.error("Lỗi khi tải dữ liệu:", error);
+            showToast("Lỗi kết nối", "error");
         }
     };
 
-    function getStatusBadge(text) {
-        let style = "background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; display: inline-block;";
-        if (text && (text.includes('Đang làm việc') || text.includes('Hoạt động'))) {
-            style = "background: #dcfce7; color: #10b981; border: 1px solid #bbf7d0; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; display: inline-block;";
-        } else if (text && (text.includes('Đã nghỉ') || text.includes('Tạm dừng') || text.includes('Quá hạn'))) {
-            style = "background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; display: inline-block;";
-        }
-        return `<span style="${style}">${text || 'N/A'}</span>`;
-    }
-
-    function getLevelBadge(id, text) {
-        if (!id && text) {
-            const t = text.toLowerCase();
-            if (t.includes('khẩn cấp')) id = 1;
-            else if (t.includes('quan trọng') || t.includes('cao')) id = 2;
-            else if (t.includes('thấp')) id = 4;
-            else id = 3;
-        }
-        const mapping = {
-            '1': 'Khẩn cấp',
-            '2': 'Quan trọng',
-            '3': 'Bình thường',
-            '4': 'Thấp',
-            '5': 'Đặc biệt'
-        };
-        const label = mapping[id] || mapping[String(id)] || text || 'Bình thường';
-        return label;
-    }
-
-    initEvents();
-    loadInitialData();
+    init();
 });

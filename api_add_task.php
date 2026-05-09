@@ -1,14 +1,10 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ma_nv = $_POST['ma_nv'] ?? '';
@@ -76,4 +72,3 @@ try {
     }
     echo json_encode(["success" => false, "message" => "Lỗi Database: " . $e->getMessage()]);
 }
-?>

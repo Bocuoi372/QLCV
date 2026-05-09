@@ -2,18 +2,19 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
+error_reporting(0);
+ini_set('display_errors', 0);
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Kiểm tra xem đã đăng nhập chưa
-    if (!isset($_SESSION['ma_nv'])) {
-        echo json_encode(["success" => false, "message" => "Chưa đăng nhập! Vui lòng đăng nhập lại."]);
+    if (!isset($_SESSION['ma_nv']) || empty($_SESSION['ma_nv'])) {
+        echo json_encode([
+            "success" => false, 
+            "unauthorized" => true,
+            "message" => "Chưa đăng nhập! Vui lòng đăng nhập lại."
+        ]);
         exit;
     }
 
@@ -23,6 +24,7 @@ try {
     // Lấy danh sách công việc riêng của nhân viên này
     $stmt = $conn->prepare("
         SELECT 
+            cv.id,
             cv.ma_cv,
             cv.ten_cv,
             cv.mo_ta_cv,
@@ -31,6 +33,8 @@ try {
             cv.ngay_hoan_thanh,
             cv.ghi_chu,
             cv.tien_do,
+            cv.cap_do_id,
+            cv.trang_thai_id,
             cd.ten_cap_do as cap_do_text,
             tt.ten_trang_thai as trang_thai_text
         FROM cong_viec_dinh_ky cv
@@ -55,4 +59,3 @@ try {
 } catch(PDOException $e) {
     echo json_encode(["success" => false, "message" => "Lỗi Database: " . $e->getMessage()]);
 }
-?>

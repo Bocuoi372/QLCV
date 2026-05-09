@@ -8,8 +8,9 @@
     <!-- Modern Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="utils.js?v=14"></script>
 </head>
 
 <body>
@@ -47,6 +48,12 @@
                         <span>Tài khoản nhân viên</span>
                     </a>
                 </li>
+                <li>
+                    <a href="staff.html">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+                        <span>Công việc cá nhân</span>
+                    </a>
+                </li>
                 <li style="margin-top: auto;">
                     <a href="login.html" onclick="sessionStorage.clear(); localStorage.clear();" style="color: var(--danger);">
                         <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -59,109 +66,128 @@
         <!-- Nội dung chính -->
         <div class="main-wrapper">
             <div class="container">
-                <header class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <header class="page-header">
                     <div>
-                        <h1 class="main-title">DANH SÁCH NHÂN VIÊN</h1>
-                        <p class="page-subtitle">Quản lý và theo dõi thông tin nhân sự trong hệ thống</p>
+                        <h1 class="main-title">Nhân viên</h1>
+                        <p class="page-subtitle">Quản lý và theo dõi thông tin nhân sự</p>
                     </div>
-                    <button class="btn-add">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; vertical-align: middle;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        Thêm Nhân Viên
+                    <button class="btn-add" id="btnAddTaskGlobal">
+                        <span style="font-size: 1.2rem; margin-right: 4px;">+</span> Thêm nhân viên
                     </button>
                 </header>
 
-                <main class="content-wrapper">
-                    <!-- Table 1: Cấp độ và trạng thái -->
-                    <section class="card">
+                <!-- Stats Cards -->
+                <div class="stats-overview">
+                    <div class="stat-card-new">
+                        <p class="stat-label">Tổng nhân viên</p>
+                        <h3 class="stat-value" id="totalStaff">0</h3>
+                    </div>
+                    <div class="stat-card-new active-working">
+                        <p class="stat-label">Đang làm việc</p>
+                        <h3 class="stat-value" id="workingStaff" style="color: #6366f1;">0</h3>
+                    </div>
+                    <div class="stat-card-new on-hold">
+                        <p class="stat-label">Tạm dừng</p>
+                        <h3 class="stat-value" id="holdStaff" style="color: #f59e0b;">0</h3>
+                    </div>
+                    <div class="stat-card-new on-leave">
+                        <p class="stat-label">Nghỉ phép</p>
+                        <h3 class="stat-value" id="leaveStaff" style="color: #10b981;">0</h3>
+                    </div>
+                </div>
 
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th colspan="4" class="main-th">DANH SÁCH NHÂN VIÊN VÀ VỊ TRÍ</th>
-                                        <th colspan="3" class="main-th">DANH MỤC CẤP ĐỘ VÀ TRẠNG THÁI</th>
-                                    </tr>
-                                    <tr>
-                                        <th class="sub-th" style="width: 50px;">STT</th>
-                                        <th class="sub-th">Mã NV</th>
-                                        <th class="sub-th">Tên NV</th>
-                                        <th class="sub-th">Vị trí công việc</th>
-                                        <th class="sub-th">Cấp độ</th>
-                                        <th class="sub-th">Trạng thái</th>
-                                        <th class="sub-th" style="width: 160px;">Hành động</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+                <!-- Filters -->
+                <div class="filter-controls">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="staffSearch" placeholder="Tìm kiếm nhân viên...">
+                    </div>
+                    <select id="posFilter" class="filter-select">
+                        <option value="all">Tất cả vị trí</option>
+                    </select>
+                </div>
+
+                <div class="dashboard-layout" id="dashboardLayout">
+                    <!-- Left Column: Employee Grid -->
+                    <div class="employee-section">
+                        <div class="employee-grid" id="employeeGrid">
+                            <!-- Cards will be rendered here -->
                         </div>
-                    </section>
 
-                </main>
+                        <!-- Pagination -->
+                        <div class="pagination-container">
+                            <span class="pagination-info" id="paginationInfo">1-6 / 8 nhân viên</span>
+                            <div class="pagination-actions">
+                                <button class="btn-page" id="prevPage">&lt;</button>
+                                <div class="page-numbers" id="pageNumbers">
+                                    <button class="btn-number active">1</button>
+                                    <button class="btn-number">2</button>
+                                </div>
+                                <button class="btn-page" id="nextPage">&gt;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Employee Detail -->
+                    <div class="detail-sidebar" id="employeeDetail">
+                        <div class="no-selection">
+                            <p>Chọn một nhân viên để xem chi tiết</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Modal (MessageBox) -->
-    <div id="addModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Thêm Công Việc Mới</h2>
-                <button class="btn-close" id="btnCloseModal">&times;</button>
+    <div id="addModal" class="modal-overlay premium-modal">
+        <div class="modal-content" style="max-width: 480px; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);">
+            <div class="modal-header" style="padding: 30px; background: white; border-bottom: 1px solid #f1f5f9; position: relative;">
+                <h2 id="modalTitle" style="width: 100%; text-align: center; font-size: 1.6rem; font-weight: 800; color: #1e293b; margin: 0; letter-spacing: -0.02em;">Thêm Tài Khoản Mới</h2>
+                <button class="btn-close" id="btnCloseModal" style="position: absolute; right: 25px; top: 25px; opacity: 0.5; font-size: 1.8rem;">&times;</button>
             </div>
-            <div class="modal-body">
-                <form id="addForm">
+            <div class="modal-body" style="padding: 40px; background: white;">
+                <form id="addForm" style="display: flex; flex-direction: column; gap: 24px;">
                     <div class="form-group">
-                        <label>Mã Nhân Viên</label>
-                        <input type="text" id="modal_ma_nv" required placeholder="Nhập mã NV...">
+                        <label style="color: #64748b; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase;">MÃ NHÂN VIÊN (TÀI KHOẢN) <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="modal_ma_nv" required placeholder="Ví dụ: NV02" 
+                               style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 18px; padding: 16px 20px; font-size: 1.05rem; font-weight: 500; transition: all 0.2s; outline: none;">
                     </div>
                     <div class="form-group">
-                        <label>Tên Nhân Viên</label>
-                        <input type="text" id="modal_ten_nv" required placeholder="Nhập tên NV...">
+                        <label style="color: #64748b; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase;">TÊN NHÂN VIÊN <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="modal_ten_nv" required placeholder="Nhập tên nhân viên..."
+                               style="background: #f8fafc; border: 1.5px solid #f1f5f9; border-radius: 18px; padding: 16px 20px; font-size: 1.05rem; font-weight: 500; outline: none; color: #64748b;">
                     </div>
                     <div class="form-group">
-                        <label>Vị trí công việc</label>
-                        <input type="text" id="modal_vi_tri" required placeholder="Nhập vị trí...">
+                        <label style="color: #64748b; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase;">MẬT KHẨU</label>
+                        <input type="text" id="modal_mat_khau" placeholder="Mặc định: 123456"
+                               style="background: #f8fafc; border: 1.5px solid #f1f5f9; border-radius: 18px; padding: 16px 20px; font-size: 1.05rem; font-weight: 500; outline: none; color: #64748b;">
                     </div>
                     <div class="form-group">
-                        <label>Cấp độ</label>
-                        <select id="modal_cap_do">
-                            <option value="1">Khẩn cấp</option>
-                            <option value="2">Quan trọng</option>
-                            <option value="3" selected>Bình thường</option>
-                            <option value="4">Thấp</option>
-                            <option value="5">Có thời gian cụ thể</option>
+                        <label style="color: #64748b; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase;">QUYỀN HẠN</label>
+                        <select id="modal_quyen_han" 
+                                style="background: #f8fafc; border: 1.5px solid #f1f5f9; border-radius: 18px; padding: 16px 20px; font-size: 1.05rem; font-weight: 600; outline: none; color: #1e293b; appearance: none; cursor: pointer;">
+                            <option value="4">Ban Giám Đốc</option>
+                            <option value="3" selected>Nhân viên (Staff)</option>
+                            <option value="2">Quản lý (Manager)</option>
+                            <option value="1">Quản trị viên (Admin)</option>
                         </select>
                     </div>
-                    <div class="form-group" id="group_ngay_cu_the" style="display: none; animation: fadeIn 0.3s ease;">
-                        <label>Ngày hoàn thành</label>
-                        <input type="date" id="modal_ngay_cu_the" class="form-control">
-                    </div>
                     <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select id="modal_trang_thai">
-                            <option value="1">Đã hoàn thành</option>
-                            <option value="2" selected>Đang thực hiện</option>
-                            <option value="3">Quá hạn</option>
-                            <option value="4">Tạm dừng</option>
-                            <option value="5">Xin chỉ đạo</option>
-                        </select>
+                        <label style="color: #64748b; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase;">PHÒNG BAN</label>
+                        <input type="text" id="modal_phong_ban" placeholder="VD: Kỹ thuật, Kinh doanh..."
+                               style="background: #f8fafc; border: 1.5px solid #f1f5f9; border-radius: 18px; padding: 16px 20px; font-size: 1.05rem; font-weight: 500; outline: none; color: #64748b;">
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" id="btnCancelModal">Cancel</button>
-                <button class="btn-apply" id="btnApply">Apply</button>
+            <div class="modal-footer" style="padding: 30px 40px; background: white; border-top: 1px solid #f1f5f9; display: flex; justify-content: center; gap: 20px;">
+                <button class="btn-cancel" id="btnCancelModal" style="background: #f1f5f9; color: #475569; border: none; padding: 15px 35px; border-radius: 15px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s;">Hủy bỏ</button>
+                <button class="btn-apply" id="btnApply" style="background: #6366f1; color: white; border: none; padding: 15px 35px; border-radius: 15px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3); transition: all 0.2s;">Lưu thông tin</button>
             </div>
         </div>
     </div>
 
-    <script src="utils.js"></script>
-    <script src="home.js?v=2"></script>
+    <script src="home.js?v=3"></script>
 
 
 </body>

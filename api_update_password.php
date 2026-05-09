@@ -1,19 +1,15 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ma_nv = $_POST['ma_nv'] ?? '';
         $ten_nv = $_POST['ten_nv'] ?? '';
         $mat_khau = $_POST['mat_khau'] ?? '';
+        $phong_ban = $_POST['phong_ban'] ?? '';
         $quyen_han = $_POST['quyen_han'] ?? 3;
 
         if (empty($ma_nv) || empty($ten_nv) || empty($mat_khau)) {
@@ -21,9 +17,10 @@ try {
             exit;
         }
 
-        $stmt = $conn->prepare("UPDATE nhan_vien SET ten_nv = :ten_nv, mat_khau = :mat_khau, quyen_han = :quyen_han WHERE ma_nv = :ma_nv");
+        $stmt = $conn->prepare("UPDATE nhan_vien SET ten_nv = :ten_nv, phong_ban = :phong_ban, mat_khau = :mat_khau, quyen_han = :quyen_han WHERE ma_nv = :ma_nv");
         $stmt->execute([
             ':ten_nv' => $ten_nv,
+            ':phong_ban' => $phong_ban,
             ':mat_khau' => $mat_khau,
             ':quyen_han' => $quyen_han,
             ':ma_nv' => $ma_nv

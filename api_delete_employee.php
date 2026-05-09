@@ -1,14 +1,9 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ma_nv = $_POST['ma_nv'] ?? '';
@@ -18,7 +13,7 @@ try {
             exit;
         }
 
-        if ($ma_nv === 'ADMIN') {
+        if (strtolower($ma_nv) === 'admin') {
             echo json_encode(["success" => false, "message" => "Không thể xóa tài khoản Quản trị viên gốc!"]);
             exit;
         }

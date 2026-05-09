@@ -1,14 +1,9 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ma_nv = $_POST['ma_nv'] ?? '';
@@ -16,9 +11,15 @@ try {
         $mat_khau = $_POST['mat_khau'] ?? '';
         $quyen_han = $_POST['quyen_han'] ?? 3;
 
-        if (empty($ma_nv) || empty($ten_nv) || empty($mat_khau)) {
-            echo json_encode(["success" => false, "message" => "Vui lòng nhập đầy đủ thông tin!"]);
+        $phong_ban = $_POST['phong_ban'] ?? 'Kỹ thuật';
+
+        if (empty($ma_nv) || empty($ten_nv)) {
+            echo json_encode(["success" => false, "message" => "Vui lòng nhập đầy đủ mã và tên!"]);
             exit;
+        }
+
+        if (empty($mat_khau)) {
+            $mat_khau = '123456';
         }
 
         // Kiểm tra xem mã nhân viên đã tồn tại chưa
@@ -30,10 +31,11 @@ try {
         }
 
         // Thêm nhân viên mới
-        $stmt = $conn->prepare("INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec, mat_khau, quyen_han) VALUES (:ma_nv, :ten_nv, 'Nhân viên', :mat_khau, :quyen_han)");
+        $stmt = $conn->prepare("INSERT INTO nhan_vien (ma_nv, ten_nv, phong_ban, vi_tri_cong_viec, mat_khau, quyen_han) VALUES (:ma_nv, :ten_nv, :phong_ban, 'Nhân viên', :mat_khau, :quyen_han)");
         $stmt->execute([
             ':ma_nv' => $ma_nv,
             ':ten_nv' => $ten_nv,
+            ':phong_ban' => $phong_ban,
             ':mat_khau' => $mat_khau,
             ':quyen_han' => $quyen_han
         ]);

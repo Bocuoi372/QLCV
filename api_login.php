@@ -2,15 +2,9 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// Thông tin kết nối mặc định của XAMPP
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ma_nv = $_POST['ma_nv'] ?? '';
@@ -22,15 +16,15 @@ try {
         }
 
         // Tự động tạo tài khoản ADMIN mẫu nếu chưa có
-        $stmt_check_admin = $conn->query("SELECT COUNT(*) FROM nhan_vien WHERE ma_nv = 'ADMIN'");
+        $stmt_check_admin = $conn->query("SELECT COUNT(*) FROM nhan_vien WHERE LOWER(ma_nv) = 'admin'");
         if ($stmt_check_admin->fetchColumn() == 0) {
-            $conn->exec("INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec) VALUES ('ADMIN', 'Quản trị viên', 'Quản lý Hệ thống')");
+            $conn->exec("INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec, mat_khau, quyen_han) VALUES ('admin', 'Quản trị viên', 'Quản lý Hệ thống', '123456', '1')");
         }
 
         // Tự động tạo tài khoản STAFF mẫu (Nhân viên) nếu chưa có
         $stmt_check_staff = $conn->query("SELECT COUNT(*) FROM nhan_vien WHERE ma_nv = 'NV01'");
         if ($stmt_check_staff->fetchColumn() == 0) {
-            $conn->exec("INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec) VALUES ('NV01', 'Nhân viên Test', 'Nhân viên')");
+            $conn->exec("INSERT INTO nhan_vien (ma_nv, ten_nv, vi_tri_cong_viec, mat_khau, quyen_han) VALUES ('NV01', 'Nhân viên Test', 'Nhân viên', '123456', '3')");
             
             // Tạo kèm một công việc mẫu cho nhân viên này luôn để dễ hình dung
             $conn->exec("INSERT INTO cong_viec_dinh_ky (ma_cv, ten_cv, mo_ta_cv, nguoi_phu_trach, cap_do_id, trang_thai_id, loai_cv) 
@@ -49,18 +43,23 @@ try {
             $_SESSION['ma_nv'] = $user['ma_nv'];
             $_SESSION['ten_nv'] = $user['ten_nv'];
             $_SESSION['vi_tri'] = $user['vi_tri_cong_viec'];
+            $_SESSION['quyen_han'] = $user['quyen_han'];
+            $_SESSION['phong_ban'] = $user['phong_ban'];
             
             // Phân quyền dựa trên cột quyen_han (1: Admin, 2: Manager, 3: Staff)
             // Cả Admin (1) và Manager (2) đều có quyền vào trang Quản trị (ADMIN role)
             $role = 'STAFF';
-            if ($user['quyen_han'] == 1 || $user['quyen_han'] == 2) {
+            $qh = strtolower((string)$user['quyen_han']);
+            if ($qh == '1' || $qh == 'admin' || $qh == '2' || $qh == 'manager' || $qh == 'quản lý' || $qh == '4' || $qh == 'ban giám đốc') {
                 $role = 'ADMIN';
             }
 
             echo json_encode([
                 "success" => true, 
                 "message" => "Đăng nhập thành công",
-                "role" => $role
+                "role" => $role,
+                "quyen_han" => $user['quyen_han'],
+                "phong_ban" => $user['phong_ban']
             ]);
         } else {
             echo json_encode(["success" => false, "message" => "Mã nhân viên không tồn tại hoặc sai mật khẩu!"]);

@@ -1,17 +1,12 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $stmt = $conn->prepare("
-        SELECT ma_nv, ten_nv, mat_khau, quyen_han 
+        SELECT ma_nv, ten_nv, phong_ban, mat_khau, quyen_han 
         FROM nhan_vien 
         ORDER BY 
             CASE 

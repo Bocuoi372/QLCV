@@ -6,22 +6,199 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayEmpName = document.getElementById('displayEmpName');
     const tbody = document.getElementById('reportTableBody');
     const lastSync = document.getElementById('lastSync');
-    
+
     // Thống kê elements
     const statTotal = document.getElementById('statTotal');
     const statDone = document.getElementById('statDone');
+    const statDoing = document.getElementById('statDoing');
     const statOverdue = document.getElementById('statOverdue');
     const statHelp = document.getElementById('statHelp');
 
-    if (empName && displayEmpName) {
-        displayEmpName.textContent = empName.toUpperCase();
-    }
+    // if (empName && displayEmpName) {
+    //     displayEmpName.textContent = empName.toUpperCase();
+    // }
 
     let currentTasks = [];
-    let isEditMode = false;
-    const modalTitle = document.querySelector('#addTaskModal h2');
-    const inputTenCv = document.getElementById('modal_ten_cv');
-    const textareaMoTa = document.getElementById('modal_mo_ta');
+
+
+    let allFetchedTasks = [];
+    const monthFilter = document.getElementById('monthFilter');
+
+    // Khởi tạo tháng hiện tại
+    if (monthFilter) {
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        monthFilter.value = `${y}-${m}`;
+
+        monthFilter.addEventListener('change', () => {
+            applyFilter();
+        });
+    }
+
+    const urgentFilterCheckbox = document.getElementById('urgentFilterCheckbox');
+    if (urgentFilterCheckbox) {
+        urgentFilterCheckbox.addEventListener('change', () => {
+            applyFilter();
+        });
+    }
+
+    const applyFilter = () => {
+        if (!monthFilter) return;
+        const selectedMonth = monthFilter.value; // format: "YYYY-MM"
+
+        if (!selectedMonth) {
+            currentTasks = [...allFetchedTasks];
+        } else {
+            // Bước 1: Xử lý làm sạch data công việc định kỳ từ tháng cũ (Sử dụng hàm dùng chung từ utils.js)
+            const processedTasks = allFetchedTasks.map(task => processTaskReset(task, selectedMonth));
+
+            // Bước 2: Lọc các công việc (Khớp logic toàn hệ thống)
+            currentTasks = [];
+            processedTasks.forEach(task => {
+                const loai = (task.loai_cv || 'Định kỳ').trim();
+                const originalTask = allFetchedTasks.find(t => t.ma_cv === task.ma_cv) || task;
+                const start = originalTask.ngay_bat_dau;
+                const end = originalTask.ngay_hoan_thanh;
+
+                if (loai === 'Phát sinh') {
+                    let matches = false;
+                    if (end && end !== '0000-00-00') {
+                        if (end.startsWith(selectedMonth)) matches = true;
+                    } else if (start && start !== '0000-00-00') {
+                        if (start.startsWith(selectedMonth)) matches = true;
+                    }
+                    if (matches) currentTasks.push(task);
+                } else {
+                    // Định kỳ
+                    let taskOriginalMonth = null;
+                    if (end && end !== '0000-00-00') taskOriginalMonth = end.substring(0, 7);
+                    else if (start && start !== '0000-00-00') taskOriginalMonth = start.substring(0, 7);
+
+                    if (taskOriginalMonth && selectedMonth < taskOriginalMonth) return;
+                    currentTasks.push(task);
+                }
+            });
+        }
+
+        const urgentFilterCheckbox = document.getElementById('urgentFilterCheckbox');
+        const isUrgentFilterEnabled = urgentFilterCheckbox ? urgentFilterCheckbox.checked : false;
+
+        let urgentCount = 0;
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
+
+        currentTasks = currentTasks.filter(task => {
+            let isUrgent = false;
+            if (parseInt(task.tien_do || 0) < 100 && task.ngay_hoan_thanh && task.ngay_hoan_thanh !== '0000-00-00') {
+                const d = new Date(task.ngay_hoan_thanh);
+                d.setHours(0, 0, 0, 0);
+                const diffDays = Math.ceil((d - todayDate) / (1000 * 60 * 60 * 24));
+                if (diffDays <= 2) {
+                    isUrgent = true;
+                    urgentCount++;
+                }
+            }
+            if (isUrgentFilterEnabled && !isUrgent) return false;
+            return true;
+        });
+
+        const reportAlertBadge = document.getElementById('reportAlertBadge');
+        const reportAlertText = document.getElementById('reportAlertText');
+        if (reportAlertBadge && reportAlertText) {
+            if (urgentCount > 0) {
+                reportAlertBadge.style.display = 'flex';
+                reportAlertText.textContent = `Đang có ${urgentCount} công việc sắp/đã trễ Deadline!`;
+            } else {
+                reportAlertBadge.style.display = 'none';
+            }
+        }
+
+        renderTable(currentTasks);
+    };
+
+    const renderTable = (data) => {
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 60px; color: var(--text-muted);">Không có công việc nào trong tháng này.</td></tr>';
+        }
+
+        let stats = {
+            tong_so: data.length,
+            hoan_thanh: 0,
+            dang_lam: 0,
+            qua_han: 0,
+            can_chi_dao: 0
+        };
+
+        data.forEach((task, index) => {
+            // Tính toán lại thống kê cho tháng này (Đồng bộ logic toàn hệ thống)
+            const prog = parseInt(task.tien_do || 0);
+            let sId = parseInt(task.trang_thai_id || 2);
+            let sText = task.trang_thai_text;
+
+            const isDone = sId === 1 || prog >= 100;
+
+            if (isDone) {
+                sId = 1; sText = 'Hoàn thành';
+                stats.hoan_thanh++;
+            } else {
+                // Kiểm tra quá hạn tự động
+                if (task.ngay_hoan_thanh && task.ngay_hoan_thanh !== '0000-00-00') {
+                    const d = new Date(task.ngay_hoan_thanh);
+                    d.setHours(0,0,0,0);
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    if (d < today) {
+                        sId = 3; sText = 'Quá hạn';
+                    }
+                }
+
+                if (sId === 3) stats.qua_han++;
+                else if (sId === 5) stats.can_chi_dao++;
+                else stats.dang_lam++; 
+            }
+
+            const row = document.createElement('tr');
+            row.dataset.task = JSON.stringify(task);
+
+            let dateClass = '';
+            if (!isDone && task.ngay_hoan_thanh && task.ngay_hoan_thanh !== '0000-00-00') {
+                const d = new Date(task.ngay_hoan_thanh);
+                d.setHours(0, 0, 0, 0);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const diffDays = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+                if (diffDays <= 0) dateClass = 'text-due-urgent';
+                else if (diffDays <= 2) dateClass = 'text-due-soon';
+            }
+
+            row.innerHTML = `
+                <td style="text-align: center; color: var(--text-muted); font-weight: 600; width: 50px; min-width: 50px; max-width: 50px;">${index + 1}</td>
+                <td style="color: var(--primary-light); font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; font-size: 0.85rem; width: 100px; min-width: 100px; max-width: 100px; white-space: nowrap;">${task.ma_cv}</td>
+                <td style="color: var(--text-main); font-weight: 700; line-height: 1.4; width: 200px; min-width: 200px; max-width: 200px;">${task.ten_cv || ''}</td>
+                <td style="width: 350px; min-width: 350px; max-width: 350px; text-align: left; background: #fafafa; border-radius: 8px;">${formatChecklist(task.mo_ta_cv)}</td>
+                <td style="text-align: center; width: 120px; min-width: 120px; max-width: 120px; white-space: nowrap;">${getLevelBadge(task.cap_do_id)}</td>
+                <td style="text-align: center; width: 100px; min-width: 100px; max-width: 100px; white-space: nowrap;"><span class="badge" style="background: #f1f5f9; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; font-size: 11px;">${task.loai_cv || ''}</span></td>
+                <td style="font-weight: 600; text-align: center; color: var(--text-muted); width: 100px; min-width: 100px; max-width: 100px; white-space: nowrap;">${formatDate(task.ngay_bat_dau)}</td>
+                <td style="text-align: center; width: 110px; min-width: 110px; max-width: 110px; white-space: nowrap;">
+                    <span class="${dateClass}" style="font-weight: 700; font-size: 0.9rem;">${formatDate(task.ngay_hoan_thanh)}</span>
+                </td>
+                <td style="text-align: center; width: 130px; min-width: 130px; max-width: 130px; white-space: nowrap;">
+                    ${getStatusBadge(sId, sText)}
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        statTotal.textContent = stats.tong_so;
+        statDone.textContent = stats.hoan_thanh;
+        statDoing.textContent = stats.dang_lam;
+        statOverdue.textContent = stats.qua_han;
+        statHelp.textContent = stats.can_chi_dao;
+
+        lastSync.textContent = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    };
 
     // === HÀM LẤY VÀ HIỂN THỊ DANH SÁCH CÔNG VIỆC ===
     const loadEmployeeTasks = async () => {
@@ -45,56 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     return 0;
                 });
 
-                currentTasks = sortedData;
-                tbody.innerHTML = '';
-                
-                if (currentTasks.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 60px; color: var(--text-muted);">Nhân viên này chưa có công việc nào.</td></tr>';
-                }
-
-                currentTasks.forEach((task, index) => {
-                    const row = document.createElement('tr');
-                    row.dataset.task = JSON.stringify(task);
-                    
-                    const levelStyle = task.cap_do_id == 1 ? 'color: #ef4444; font-weight: 700;' : 
-                                      (task.cap_do_id == 2 ? 'color: #f59e0b; font-weight: 700;' : '');
-
-                    row.innerHTML = `
-                        <td style="text-align: center; color: var(--text-muted);">${index + 1}</td>
-                        <td class="bold" style="color: var(--primary-light); font-family: monospace;">${task.ma_cv}</td>
-                        <td class="bold" style="color: var(--text-main);">${task.ten_cv || ''}</td>
-                        <td style="max-width: 400px; text-align: left;">${formatChecklist(task.mo_ta_cv)}</td>
-                        <td>${getLevelBadge(task.cap_do_id)}</td>
-                        <td><span class="badge" style="background: #f1f5f9; color: var(--text-muted);">${task.loai_cv || ''}</span></td>
-                        <td style="font-weight: 600;">${formatDate(task.ngay_bat_dau)}</td>
-                        <td style="font-weight: 600; color: #6366f1;">${formatDate(task.ngay_hoan_thanh)}</td>
-                        <td style="text-align: center;">
-                            ${(() => {
-                                let sId = task.trang_thai_id;
-                                let sText = task.trang_thai_text;
-                                if (parseInt(task.tien_do || 0) >= 100) {
-                                    sId = 1;
-                                    sText = 'Hoàn thành';
-                                }
-                                return getStatusBadge(sId, sText);
-                            })()}
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-                if (result.stats) {
-                    statTotal.textContent = result.stats.tong_so || 0;
-                    statDone.textContent = result.stats.hoan_thanh || 0;
-                    statOverdue.textContent = result.stats.qua_han || 0;
-                    statHelp.textContent = result.stats.can_chi_dao || 0;
-                }
-                
-                lastSync.textContent = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                allFetchedTasks = sortedData;
+                applyFilter();
+            } else {
+                showToast(result.message || 'Lỗi tải dữ liệu!', 'error');
             }
         } catch (error) {
             console.error('Lỗi tải dữ liệu:', error);
-            showToast('Lỗi kết nối máy chủ!', 'error');
+            showToast('Lỗi kết nối máy chủ! Chi tiết: ' + error.message, 'error');
         }
     };
 
@@ -118,13 +253,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const t = text.toLowerCase();
             if (t.includes('hoàn thành')) id = 1;
             else if (t.includes('đang làm') || t.includes('thực hiện')) id = 2;
-            else if (t.includes('tạm dừng')) id = 3;
+            else if (t.includes('quá hạn')) id = 3;
+            else if (t.includes('tạm dừng')) id = 4;
+            else if (t.includes('xin chỉ đạo')) id = 5;
             else id = 2;
         }
         const mapping = {
             '1': { text: 'Hoàn thành', color: '#166534', bg: '#dcfce7', border: '#bbf7d0' },
             '2': { text: 'Đang làm', color: '#0369a1', bg: '#e0f2fe', border: '#bae6fd' },
-            '3': { text: 'Tạm dừng', color: '#92400e', bg: '#fef3c7', border: '#fde68a' }
+            '3': { text: 'Quá hạn', color: '#ef4444', bg: '#fee2e2', border: '#fecaca' },
+            '4': { text: 'Tạm dừng', color: '#92400e', bg: '#fef3c7', border: '#fde68a' },
+            '5': { text: 'Xin chỉ đạo', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' }
         };
         const config = mapping[id] || mapping[String(id)] || mapping['2'];
         const style = `padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; display: inline-block; background: ${config.bg}; color: ${config.color}; border: 1px solid ${config.border};`;
@@ -150,150 +289,72 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<span style="${style}">${config.text}</span>`;
     }
 
-    // Modal Add Task
-    const btnAddTask = document.getElementById('btnAddTask');
-    const taskModal = document.getElementById('addTaskModal');
-    const btnCloseTaskModal = document.getElementById('btnCloseTaskModal');
-    const btnCancelTaskModal = document.getElementById('btnCancelTaskModal');
-    const btnApplyTask = document.getElementById('btnApplyTask');
-    const addTaskForm = document.getElementById('addTaskForm');
 
-    const openModal = () => { if (taskModal) taskModal.style.display = 'flex'; };
-    const closeModal = () => { if (taskModal) taskModal.style.display = 'none'; };
 
-    if (btnAddTask && empId) {
-        btnAddTask.addEventListener('click', () => {
-            isEditMode = false;
-            modalTitle.textContent = 'Thêm Công Việc Mới';
-            addTaskForm.reset();
-            openModal();
-            // Cho phép nhập mã công việc tự do
-            document.getElementById('modal_ma_cv').value = '';
-            document.getElementById('modal_ma_cv').readOnly = false;
-        });
-    }
-
-    if (inputTenCv) {
-        inputTenCv.addEventListener('input', (e) => {
-            const val = e.target.value;
-            const predefinedTasks = [
-                "Kiểm tra hệ thống định kỳ", "Báo cáo doanh thu tháng", "Bảo trì máy chủ",
-                "Hỗ trợ khách hàng", "Cập nhật dữ liệu", "Đào tạo nhân viên mới",
-                "Thiết kế Banner quảng cáo", "Lập kế hoạch Marketing"
-            ];
-            if (predefinedTasks.includes(val)) {
-                textareaMoTa.value = "";
-                let checklist = "";
-                for (let i = 1; i <= 6; i++) {
-                    checklist += `[ ] Hạng mục công việc ${i}\n`;
-                }
-                textareaMoTa.value = checklist.trim();
-            }
-        });
-    }
-
-    if (tbody) {
-        tbody.addEventListener('click', async (e) => {
-            const btnEdit = e.target.closest('.btn-edit');
-            const btnDelete = e.target.closest('.btn-delete');
-
-            if (btnEdit) {
-                isEditMode = true;
-                modalTitle.textContent = 'Cập Nhật Công Việc';
-                const row = btnEdit.closest('tr');
-                const task = JSON.parse(row.dataset.task);
-
-                document.getElementById('edit_id').value = task.ma_cv;
-                document.getElementById('modal_ma_cv').value = task.ma_cv;
-                document.getElementById('modal_ma_cv').readOnly = false;
-                document.getElementById('modal_ten_cv').value = task.ten_cv;
-                document.getElementById('modal_mo_ta').value = task.mo_ta_cv || '';
-                document.getElementById('modal_loai_cv').value = task.loai_cv || 'Định kỳ';
-                document.getElementById('modal_cap_do_cv').value = task.cap_do_id || 3;
-                document.getElementById('modal_ngay_bat_dau').value = task.ngay_bat_dau || '';
-                document.getElementById('modal_ngay_hoan_thanh').value = task.ngay_hoan_thanh || '';
-                document.getElementById('modal_trang_thai_cv').value = task.trang_thai_id || 2;
-                document.getElementById('modal_tien_do').value = task.tien_do || 0;
-                document.getElementById('modal_ghi_chu').value = task.ghi_chu || '';
-
-                openModal();
-            }
-
-            if (btnDelete) {
-                const ma_cv = btnDelete.getAttribute('data-macv');
-                if (confirm(`Bạn có chắc chắn muốn xóa công việc ${ma_cv}?`)) {
-                    try {
-                        const formData = new FormData();
-                        formData.append('ma_cv', ma_cv);
-                        const response = await fetch('api_delete_task.php', { method: 'POST', body: formData });
-                        const result = await response.json();
-                        if (result.success) {
-                            showToast("Đã xóa công việc!");
-                            loadEmployeeTasks();
-                        } else {
-                            showToast("Lỗi: " + result.message, "error");
-                        }
-                    } catch (error) {
-                        showToast("Lỗi kết nối!", "error");
-                    }
-                }
-            }
-        });
-    }
-
-    if (btnCloseTaskModal) btnCloseTaskModal.addEventListener('click', closeModal);
-    if (btnCancelTaskModal) btnCancelTaskModal.addEventListener('click', closeModal);
-
-    if (btnApplyTask) {
-        btnApplyTask.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            const ma_cv = document.getElementById('modal_ma_cv').value;
-            const ten_cv = document.getElementById('modal_ten_cv').value;
-            
-            if (!empId) {
-                showToast("Lỗi: Không xác định được nhân viên!", "error");
+    // === HÀM XUẤT EXCEL ===
+    const btnExportExcel = document.getElementById('btnExportExcel');
+    if (btnExportExcel) {
+        btnExportExcel.addEventListener('click', () => {
+            if (currentTasks.length === 0) {
+                showToast('Không có dữ liệu để xuất!', 'warning');
                 return;
             }
 
-            if (!ma_cv || !ten_cv) {
-                showToast("Vui lòng điền mã và tên công việc!", "warning");
-                return;
-            }
-
-            // Disable button
-            const originalText = btnApplyTask.textContent;
-            btnApplyTask.disabled = true;
-            btnApplyTask.textContent = 'Đang lưu...';
-
-            try {
-                const formData = new FormData(addTaskForm);
-                formData.append('ma_nv', empId);
-                if (isEditMode) {
-                    formData.append('old_ma_cv', document.getElementById('edit_id').value);
+            const dataToExport = currentTasks.map((task, index) => {
+                let statusSuffix = '';
+                if (parseInt(task.tien_do || 0) < 100 && task.ngay_hoan_thanh && task.ngay_hoan_thanh !== '0000-00-00') {
+                    const d = new Date(task.ngay_hoan_thanh);
+                    d.setHours(0, 0, 0, 0);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const diffDays = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+                    if (diffDays < 0) statusSuffix = ' [QUÁ HẠN]';
+                    else if (diffDays <= 2) statusSuffix = ' [SẮP HẠN]';
                 }
 
-                const endpoint = isEditMode ? 'api_update_task_detail.php' : 'api_add_task.php';
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
+                return {
+                    'STT': index + 1,
+                    'Mã CV': task.ma_cv,
+                    'Tên công việc': task.ten_cv + statusSuffix,
+                    'Mô tả': task.mo_ta_cv ? task.mo_ta_cv.replace(/\[([x\s])\]/g, (m, p1) => p1.trim() ? '[v]' : '[ ]') : '',
+                    'Cấp độ': task.cap_do_id == 1 ? 'Khẩn cấp' : task.cap_do_id == 2 ? 'Quan trọng' : task.cap_do_id == 4 ? 'Thấp' : 'Bình thường',
+                    'Loại': task.loai_cv,
+                    'Bắt đầu': task.ngay_bat_dau,
+                    'Kết thúc': task.ngay_hoan_thanh,
+                    'Tiến độ (%)': task.tien_do,
+                    'Trạng thái': task.trang_thai_text
+                };
+            });
 
-                if (result.success) {
-                    showToast(isEditMode ? "Cập nhật thành công!" : "Phân công công việc thành công!", "success");
-                    closeModal();
-                    addTaskForm.reset();
-                    loadEmployeeTasks();
-                } else {
-                    showToast("Lỗi: " + result.message, "error");
-                }
-            } catch (error) {
-                showToast("Lỗi kết nối server!", "error");
-            } finally {
-                btnApplyTask.disabled = false;
-                btnApplyTask.textContent = originalText;
-            }
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCaoCongViec");
+
+            const fileName = `Bao_cao_CV_${empName || 'NhanVien'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+            showToast('Đã xuất file Excel!');
+        });
+    }
+
+    // === HÀM XUẤT PDF ===
+    const btnExportPDF = document.getElementById('btnExportPDF');
+    if (btnExportPDF) {
+        btnExportPDF.addEventListener('click', () => {
+            const element = document.querySelector('.main-wrapper');
+            if (!element) return;
+
+            const options = {
+                margin: 10,
+                filename: `Bao_cao_CV_${empName || 'NhanVien'}_${new Date().toISOString().slice(0, 10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            showToast('Đang tạo file PDF...');
+            html2pdf().set(options).from(element).save().then(() => {
+                showToast('Đã xuất file PDF!');
+            });
         });
     }
 

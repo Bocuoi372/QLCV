@@ -1,23 +1,34 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
-
+require_once 'db_config.php';
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $currentQuyenHan = $_SESSION['quyen_han'] ?? 3;
+    $currentPhongBan = $_SESSION['phong_ban'] ?? '';
 
     $ma_nv = isset($_GET['id']) ? trim($_GET['id']) : '';
     if ($ma_nv === 'null' || $ma_nv === 'undefined') $ma_nv = '';
 
     $whereClause = "";
     $params = [];
-    if (!empty($ma_nv)) {
-        $whereClause = "WHERE cv.nguoi_phu_trach = :ma_nv";
-        $params[':ma_nv'] = $ma_nv;
+
+    if ($currentQuyenHan == 2) {
+        // Nếu là Quản lý: Chỉ xem được nhân viên trong phòng ban của mình
+        if (!empty($ma_nv)) {
+            $whereClause = "WHERE cv.nguoi_phu_trach = :ma_nv AND nv.phong_ban = :current_pb";
+            $params[':ma_nv'] = $ma_nv;
+            $params[':current_pb'] = $currentPhongBan;
+        } else {
+            $whereClause = "WHERE nv.phong_ban = :current_pb";
+            $params[':current_pb'] = $currentPhongBan;
+        }
+    } else {
+        // Admin hoặc BGD
+        if (!empty($ma_nv)) {
+            $whereClause = "WHERE cv.nguoi_phu_trach = :ma_nv";
+            $params[':ma_nv'] = $ma_nv;
+        }
     }
 
     // Lấy danh sách công việc
@@ -51,6 +62,7 @@ try {
     // Thống kê
     $tong_so = count($results);
     $hoan_thanh = 0;
+    $dang_lam = 0;
     $qua_han = 0;
     $can_chi_dao = 0;
 
@@ -60,6 +72,7 @@ try {
         if ($is_done) {
             $hoan_thanh++;
         } else {
+            if ($task['trang_thai_id'] == 2) $dang_lam++; 
             if ($task['trang_thai_id'] == 3) $qua_han++;    // Quá hạn
             if ($task['trang_thai_id'] == 5) $can_chi_dao++; // Xin chỉ đạo
         }
@@ -71,6 +84,7 @@ try {
         "stats" => [
             "tong_so" => $tong_so,
             "hoan_thanh" => $hoan_thanh,
+            "dang_lam" => $dang_lam,
             "qua_han" => $qua_han,
             "can_chi_dao" => $can_chi_dao
         ]
@@ -79,4 +93,3 @@ try {
 } catch(PDOException $e) {
     echo json_encode(["success" => false, "message" => "Lỗi Database: " . $e->getMessage()]);
 }
-?>

@@ -1,18 +1,25 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
+error_reporting(0);
+ini_set('display_errors', 0);
 
+session_start();
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $quyenHan = $_SESSION['quyen_han'] ?? 3;
+    $phongBan = $_SESSION['phong_ban'] ?? '';
+
+    $whereClause = "";
+    if ($quyenHan == 2) {
+        $whereClause = " WHERE phong_ban = " . $conn->quote($phongBan);
+    }
 
     $stmt = $conn->prepare("
-        SELECT ma_nv, ten_nv, quyen_han 
+        SELECT ma_nv, ten_nv, quyen_han, vi_tri_cong_viec, phong_ban 
         FROM nhan_vien 
+        $whereClause
         ORDER BY 
             CASE 
                 WHEN quyen_han IN (1, '1', 'Admin', 'ADMIN') THEN 1

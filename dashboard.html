@@ -8,7 +8,7 @@
     <!-- Modern Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -249,7 +249,7 @@
             border-radius: var(--input-radius);
             border: 1.5px solid #f1f5f9;
             background: white;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Be Vietnam Pro', sans-serif;
             font-weight: 600;
             color: #1e293b;
             transition: all 0.3s;
@@ -406,6 +406,7 @@
 
                         <div style="flex: 0 0 180px; display: flex; flex-direction: column; gap: 12px; justify-content: flex-end;">
                             <button class="btn-apply" id="btnApplyFilter">🚀 ÁP DỤNG</button>
+                            <button class="btn-apply" id="btnExportExcel" style="background: #10b981; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">📊 XUẤT EXCEL</button>
                             <button class="btn-clear" id="btnClearFilter">🔄 XÓA LỌC</button>
                         </div>
                     </div>
@@ -507,7 +508,9 @@
         </div>
     </div>
 
-    <script src="dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="dashboard.js?v=2"></script>
 </body>
 
 </html>

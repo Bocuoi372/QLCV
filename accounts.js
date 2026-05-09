@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Đang tải danh sách...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">Đang tải danh sách...</td></tr>';
             
             const response = await fetch('api_get_accounts.php');
             const result = await response.json();
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.innerHTML = '';
 
                 if (result.data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Chưa có tài khoản nào!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">Chưa có tài khoản nào!</td></tr>';
                     return;
                 }
 
@@ -34,16 +34,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     const actualPass = acc.mat_khau || '';
                     
                     // Chuẩn hóa quyền hạn
-                    const roleId = (acc.quyen_han == 1 || acc.quyen_han == 'Admin' || acc.quyen_han == 'ADMIN') ? 1 : 
+                    const roleId = (acc.quyen_han == 4 || acc.quyen_han == 'Ban Giám Đốc') ? 4 :
+                                   (acc.quyen_han == 1 || acc.quyen_han == 'Admin' || acc.quyen_han == 'ADMIN') ? 1 : 
                                    (acc.quyen_han == 2 || acc.quyen_han == 'Quản lý' || acc.quyen_han == 'MANAGER') ? 2 : 3;
                     
-                    const roleText = roleId === 1 ? 'Admin' : (roleId === 2 ? 'Quản lý' : 'Nhân viên');
-                    const roleColor = roleId === 1 ? '#e11d48' : (roleId === 2 ? '#d2691e' : '#64748b');
+                    const roleText = roleId === 4 ? 'Ban Giám Đốc' : (roleId === 1 ? 'Admin' : (roleId === 2 ? 'Quản lý' : 'Nhân viên'));
+                    const roleColor = roleId === 4 ? '#8b5cf6' : (roleId === 1 ? '#e11d48' : (roleId === 2 ? '#d2691e' : '#64748b'));
+
+                    const isLeadership = roleId === 1 || roleId === 4;
+                    const displayDept = isLeadership ? '' : (acc.phong_ban || 'Chưa xác định');
 
                     row.innerHTML = `
                         <td style="text-align: center; color: #64748b;">${index + 1}</td>
                         <td class="bold">${acc.ma_nv}</td>
                         <td class="bold">${acc.ten_nv}</td>
+                        <td style="color: #64748b; font-weight: 500;">${displayDept}</td>
                         <td class="bold" style="color: ${roleColor}">${roleText}</td>
                         <td>
                             <div style="display: inline-flex; align-items: center; background-color: #f8fafc; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
@@ -55,11 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </td>
                         <td>
                             <div style="display: flex; gap: 8px;">
-                                <button class="btn-change-pass" data-manv="${acc.ma_nv}" data-tennv="${acc.ten_nv}" data-pass="${actualPass}" data-quyen="${roleId}" style="background: none; color: #3b82f6; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; font-weight: 600; font-size: 0.85rem;">
+                                <button class="btn-change-pass" data-manv="${acc.ma_nv}" data-tennv="${acc.ten_nv}" data-phong="${acc.phong_ban || ''}" data-pass="${actualPass}" data-quyen="${roleId}" style="background: none; color: #3b82f6; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; font-weight: 600; font-size: 0.85rem;">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                     Sửa
                                 </button>
-                                ${acc.ma_nv !== 'ADMIN' ? `
+                                ${acc.ma_nv.toLowerCase() !== 'admin' ? `
                                 <button class="btn-delete-acc" data-manv="${acc.ma_nv}" style="background: none; color: #ef4444; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center;">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
@@ -70,11 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     tbody.appendChild(row);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="6" style="color: red; text-align: center; padding: 2rem;">Lỗi: ${result.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="color: red; text-align: center; padding: 2rem;">Lỗi: ${result.message}</td></tr>`;
             }
         } catch (error) {
             console.error("Lỗi fetch:", error);
-            tbody.innerHTML = `<tr><td colspan="6" style="color: red; text-align: center; padding: 2rem;">Lỗi kết nối hoặc dữ liệu không hợp lệ!</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="color: red; text-align: center; padding: 2rem;">Lỗi kết nối hoặc dữ liệu không hợp lệ!</td></tr>`;
         }
     };
 
@@ -86,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputMaNv = document.getElementById('modal_ma_nv');
     const inputTenNv = document.getElementById('modal_ten_nv');
     const inputQuyenHan = document.getElementById('modal_quyen_han');
+    const inputPhongBan = document.getElementById('modal_phong_ban');
     const inputMatKhau = document.getElementById('modal_mat_khau');
 
     const closeModal = () => {
@@ -109,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnUpdate) {
                 if (inputMaNv) inputMaNv.value = btnUpdate.getAttribute('data-manv');
                 if (inputTenNv) inputTenNv.value = btnUpdate.getAttribute('data-tennv');
+                if (inputPhongBan) inputPhongBan.value = btnUpdate.getAttribute('data-phong');
                 if (inputMatKhau) inputMatKhau.value = btnUpdate.getAttribute('data-pass'); 
                 if (inputQuyenHan) inputQuyenHan.value = btnUpdate.getAttribute('data-quyen');
                 if (passwordModal) passwordModal.style.display = 'flex';
@@ -128,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (btnDelete) {
                 const ma_nv = btnDelete.getAttribute('data-manv');
-                if (ma_nv === 'ADMIN') {
+                if (ma_nv.toLowerCase() === 'admin') {
                     if (typeof showToast === 'function') showToast("Bạn không thể xóa tài khoản ADMIN!", 'error');
                     return;
                 }
@@ -157,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const ma_nv = inputMaNv.value;
             const ten_nv = inputTenNv.value.trim();
+            const phong_ban = inputPhongBan.value.trim();
             const mat_khau = inputMatKhau.value.trim();
             const quyen_han = inputQuyenHan.value;
 
@@ -171,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('ma_nv', ma_nv);
             formData.append('ten_nv', ten_nv);
+            formData.append('phong_ban', phong_ban);
             formData.append('mat_khau', mat_khau);
             formData.append('quyen_han', quyen_han);
 
@@ -200,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const inputAddMaNv = document.getElementById('add_ma_nv');
     const inputAddTenNv = document.getElementById('add_ten_nv');
+    const inputAddPhongBan = document.getElementById('add_phong_ban');
     const inputAddMatKhau = document.getElementById('add_mat_khau');
     const selectAddQuyenHan = document.getElementById('add_quyen_han');
 
@@ -232,13 +242,16 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const ma_nv = inputAddMaNv.value.trim();
             const ten_nv = inputAddTenNv.value.trim();
+            const phong_ban = inputAddPhongBan.value.trim();
             const mat_khau = inputAddMatKhau.value.trim();
             const quyen_han = selectAddQuyenHan ? selectAddQuyenHan.value : 3;
 
-            if (!ma_nv || !ten_nv || !mat_khau) {
-                if (typeof showToast === 'function') showToast("Vui lòng nhập đầy đủ!", 'error');
+            if (!ma_nv || !ten_nv) {
+                if (typeof showToast === 'function') showToast("Vui lòng nhập đầy đủ mã và tên!", 'error');
                 return;
             }
+
+            const finalPassword = mat_khau || '123456';
 
             btnSaveNewAccount.textContent = 'Đang xử lý...';
             btnSaveNewAccount.disabled = true;
@@ -246,7 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('ma_nv', ma_nv);
             formData.append('ten_nv', ten_nv);
-            formData.append('mat_khau', mat_khau);
+            formData.append('phong_ban', phong_ban);
+            formData.append('mat_khau', finalPassword);
             formData.append('quyen_han', quyen_han);
 
             try {

@@ -1,14 +1,10 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "quanly_congviec_dinhky";
+require_once 'db_config.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ma_nv = $_POST['ma_nv'] ?? '';
@@ -22,50 +18,72 @@ try {
         $ngay_hoan_thanh = !empty($_POST['ngay_hoan_thanh']) ? $_POST['ngay_hoan_thanh'] : null;
         $ghi_chu = $_POST['ghi_chu'] ?? '';
         $tien_do = $_POST['tien_do'] ?? 0;
-        $old_ma_cv = $_POST['old_ma_cv'] ?? $ma_cv;
+        $id = $_POST['id'] ?? null;
+        $is_duplicate = ($_POST['is_duplicate'] ?? 0) == 1;
 
-        if (empty($ma_cv) || empty($ten_cv)) {
-            echo json_encode(["success" => false, "message" => "Thiếu thông tin Mã công việc hoặc Tên công việc!"]);
-            exit;
+        if ($is_duplicate || empty($id)) {
+            // New record: Either a duplicate or a brand new task
+            $stmt = $conn->prepare("
+                INSERT INTO cong_viec_dinh_ky (
+                    ma_cv, ten_cv, mo_ta_cv, nguoi_phu_trach, cap_do_id, 
+                    trang_thai_id, loai_cv, ngay_bat_dau, ngay_hoan_thanh, ghi_chu, tien_do
+                ) VALUES (
+                    :ma_cv, :ten_cv, :mo_ta_cv, :nguoi_phu_trach, :cap_do_id, 
+                    :trang_thai_id, :loai_cv, :ngay_bat_dau, :ngay_hoan_thanh, :ghi_chu, :tien_do
+                )
+            ");
+            $stmt->execute([
+                ':ma_cv' => $ma_cv,
+                ':ten_cv' => $ten_cv,
+                ':mo_ta_cv' => $mo_ta_cv,
+                ':nguoi_phu_trach' => $ma_nv,
+                ':cap_do_id' => $cap_do_id,
+                ':trang_thai_id' => $trang_thai_id,
+                ':loai_cv' => $loai_cv,
+                ':ngay_bat_dau' => $ngay_bat_dau,
+                ':ngay_hoan_thanh' => $ngay_hoan_thanh,
+                ':ghi_chu' => $ghi_chu,
+                ':tien_do' => $tien_do
+            ]);
+            $msg = $is_duplicate ? "Đã tạo bản sao công việc cho tháng mới!" : "Đã thêm công việc mới thành công!";
+            echo json_encode(["success" => true, "message" => $msg]);
+        } else {
+            // Update by ID
+            $stmt = $conn->prepare("
+                UPDATE cong_viec_dinh_ky SET 
+                    ma_cv = :ma_cv,
+                    ten_cv = :ten_cv, 
+                    mo_ta_cv = :mo_ta_cv, 
+                    nguoi_phu_trach = :nguoi_phu_trach, 
+                    cap_do_id = :cap_do_id, 
+                    trang_thai_id = :trang_thai_id, 
+                    loai_cv = :loai_cv, 
+                    ngay_bat_dau = :ngay_bat_dau, 
+                    ngay_hoan_thanh = :ngay_hoan_thanh, 
+                    ghi_chu = :ghi_chu,
+                    tien_do = :tien_do
+                WHERE id = :id
+            ");
+
+            $stmt->execute([
+                ':ma_cv' => $ma_cv,
+                ':ten_cv' => $ten_cv,
+                ':mo_ta_cv' => $mo_ta_cv,
+                ':nguoi_phu_trach' => $ma_nv,
+                ':cap_do_id' => $cap_do_id,
+                ':trang_thai_id' => $trang_thai_id,
+                ':loai_cv' => $loai_cv,
+                ':ngay_bat_dau' => $ngay_bat_dau,
+                ':ngay_hoan_thanh' => $ngay_hoan_thanh,
+                ':ghi_chu' => $ghi_chu,
+                ':tien_do' => $tien_do,
+                ':id' => $id
+            ]);
+            echo json_encode(["success" => true, "message" => "Cập nhật công việc thành công!"]);
         }
-
-        $stmt = $conn->prepare("
-            UPDATE cong_viec_dinh_ky SET 
-                ma_cv = :ma_cv,
-                ten_cv = :ten_cv, 
-                mo_ta_cv = :mo_ta_cv, 
-                nguoi_phu_trach = :nguoi_phu_trach, 
-                cap_do_id = :cap_do_id, 
-                trang_thai_id = :trang_thai_id, 
-                loai_cv = :loai_cv, 
-                ngay_bat_dau = :ngay_bat_dau, 
-                ngay_hoan_thanh = :ngay_hoan_thanh, 
-                ghi_chu = :ghi_chu,
-                tien_do = :tien_do
-            WHERE ma_cv = :old_ma_cv
-        ");
-
-        $stmt->execute([
-            ':ma_cv' => $ma_cv,
-            ':ten_cv' => $ten_cv,
-            ':mo_ta_cv' => $mo_ta_cv,
-            ':nguoi_phu_trach' => $ma_nv,
-            ':cap_do_id' => $cap_do_id,
-            ':trang_thai_id' => $trang_thai_id,
-            ':loai_cv' => $loai_cv,
-            ':ngay_bat_dau' => $ngay_bat_dau,
-            ':ngay_hoan_thanh' => $ngay_hoan_thanh,
-            ':ghi_chu' => $ghi_chu,
-            ':tien_do' => $tien_do,
-            ':old_ma_cv' => $old_ma_cv
-        ]);
-
-        echo json_encode(["success" => true, "message" => "Cập nhật công việc thành công!"]);
     } else {
         echo json_encode(["success" => false, "message" => "Yêu cầu không hợp lệ!"]);
     }
-
 } catch(PDOException $e) {
     echo json_encode(["success" => false, "message" => "Lỗi Database: " . $e->getMessage()]);
 }
-?>
